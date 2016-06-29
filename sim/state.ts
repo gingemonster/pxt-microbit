@@ -32,11 +32,6 @@ namespace pxsim {
         }
     }
 
-    export class Button {
-        constructor(public id: number) { }
-        pressed: boolean;
-    }
-
     export class EventBus {
         private queues: Map<EventQueue<number>> = {};
 
@@ -476,10 +471,6 @@ namespace pxsim {
         displayMode = DisplayMode.bw;
         font: Image = createFont();
 
-        // buttons    
-        usesButtonAB: boolean = false;
-        buttons: Button[];
-
         // pins
         pins: Pin[];
 
@@ -503,6 +494,9 @@ namespace pxsim {
 
         animationQ: AnimationQueue;
 
+        //buttons
+        buttonPairState: ButtonPairState;
+
         constructor() {
             super()
             this.id = "b" + Math_.random(2147483647);
@@ -510,11 +504,7 @@ namespace pxsim {
             this.bus = new EventBus(runtime);
             this.radio = new RadioBus(runtime);
             this.accelerometer = new Accelerometer(runtime);
-            this.buttons = [
-                new Button(DAL.MICROBIT_ID_BUTTON_A),
-                new Button(DAL.MICROBIT_ID_BUTTON_B),
-                new Button(DAL.MICROBIT_ID_BUTTON_AB)
-            ];
+            this.buttonPairState = new ButtonPairState();
             this.pins = [
                 new Pin(DAL.MICROBIT_ID_IO_P0),
                 new Pin(DAL.MICROBIT_ID_IO_P1),
