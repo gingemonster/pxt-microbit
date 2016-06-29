@@ -551,10 +551,12 @@ namespace pxsim {
                 case 'red': theme = micro_bit.themes[3]; break;
                 default: theme = pxsim.micro_bit.randomTheme();
             }
+            let buttonPairTheme = pxsim.micro_bit.defaultButtonPairTheme;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
                 theme: theme,
+                buttonPairTheme: buttonPairTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children

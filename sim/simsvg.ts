@@ -9,12 +9,6 @@ namespace pxsim.micro_bit {
         pinActive?: string;
         ledOn?: string;
         ledOff?: string;
-        buttonOuter?: string;
-        buttonUp?: string;
-        buttonDown?: string;
-        virtualButtonOuter?: string;
-        virtualButtonUp?: string;
-        virtualButtonDown?: string;
         lightLevelOn?: string;
         lightLevelOff?: string;
     }
@@ -28,11 +22,6 @@ namespace pxsim.micro_bit {
             pinActive: "#FF5500",
             ledOn: "#ff7f7f",
             ledOff: "#202020",
-            buttonOuter: "#979797",
-            buttonUp: "#000",
-            buttonDown: "#FFA500",
-            virtualButtonOuter: "#333",
-            virtualButtonUp: "#fff",
             lightLevelOn: "yellow",
             lightLevelOff: "#555"
         }
@@ -45,6 +34,7 @@ namespace pxsim.micro_bit {
     export interface IBoardProps {
         runtime: pxsim.Runtime;
         theme?: IBoardTheme;
+        buttonPairTheme?: IButtonPairTheme;
         disableTilt?: boolean;
     }
 
@@ -101,16 +91,17 @@ namespace pxsim.micro_bit {
 
         private updateTheme() {
             let theme = this.props.theme;
+            let buttonPairTheme = this.props.buttonPairTheme;
 
             svg.fill(this.display, theme.display);
             svg.fills(this.leds, theme.ledOn);
             svg.fills(this.ledsOuter, theme.ledOff);
-            svg.fills(this.buttonsOuter.slice(0, 2), theme.buttonOuter);
-            svg.fills(this.buttons.slice(0, 2), theme.buttonUp);
-            svg.fill(this.buttonsOuter[2], theme.virtualButtonOuter);
-            svg.fill(this.buttons[2], theme.virtualButtonUp);
+            svg.fills(this.buttonsOuter.slice(0, 2), buttonPairTheme.buttonOuter);
+            svg.fills(this.buttons.slice(0, 2), buttonPairTheme.buttonUp);
+            svg.fill(this.buttonsOuter[2], buttonPairTheme.virtualButtonOuter);
+            svg.fill(this.buttons[2], buttonPairTheme.virtualButtonUp);
             svg.fills(this.logos, theme.accent);
-            if (this.shakeButton) svg.fill(this.shakeButton, theme.virtualButtonUp);
+            if (this.shakeButton) svg.fill(this.shakeButton, buttonPairTheme.virtualButtonUp);
 
             this.pinGradients.forEach(lg => svg.setGradientColors(lg, theme.pin, theme.pinActive));
             svg.setGradientColors(this.lightLevelGradient, theme.lightLevelOn, theme.lightLevelOff);
@@ -122,9 +113,10 @@ namespace pxsim.micro_bit {
             let state = this.board;
             if (!state) return;
             let theme = this.props.theme;
+            let buttonPairTheme = this.props.buttonPairTheme;
 
             state.buttons.forEach((btn, index) => {
-                svg.fill(this.buttons[index], btn.pressed ? theme.buttonDown : theme.buttonUp);
+                svg.fill(this.buttons[index], btn.pressed ? buttonPairTheme.buttonDown : buttonPairTheme.buttonUp);
             });
 
             let bw = state.displayMode == pxsim.DisplayMode.bw
@@ -149,18 +141,18 @@ namespace pxsim.micro_bit {
             let state = this.board;
             if (state.useShake && !this.shakeButton) {
                 this.shakeButton = svg.child(this.g, "circle", { cx: 380, cy: 100, r: 16.5 }) as SVGCircleElement;
-                svg.fill(this.shakeButton, this.props.theme.virtualButtonUp)
+                svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp)
                 this.shakeButton.addEventListener(pointerEvents.down, ev => {
                     let state = this.board;
-                    svg.fill(this.shakeButton, this.props.theme.buttonDown);
+                    svg.fill(this.shakeButton, this.props.buttonPairTheme.buttonDown);
                 })
                 this.shakeButton.addEventListener(pointerEvents.leave, ev => {
                     let state = this.board;
-                    svg.fill(this.shakeButton, this.props.theme.virtualButtonUp);
+                    svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp);
                 })
                 this.shakeButton.addEventListener(pointerEvents.up, ev => {
                     let state = this.board;
-                    svg.fill(this.shakeButton, this.props.theme.virtualButtonUp);
+                    svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp);
                     this.board.bus.queue(DAL.MICROBIT_ID_GESTURE, 11); // GESTURE_SHAKE
                 })
                 this.shakeText = svg.child(this.g, "text", { x: 400, y: 110, class: "sim-text" }) as SVGTextElement;
@@ -723,17 +715,17 @@ svg.sim.grayscale {
                 btn.addEventListener(pointerEvents.down, ev => {
                     let state = this.board;
                     state.buttons[index].pressed = true;
-                    svg.fill(this.buttons[index], this.props.theme.buttonDown);
+                    svg.fill(this.buttons[index], this.props.buttonPairTheme.buttonDown);
                 })
                 btn.addEventListener(pointerEvents.leave, ev => {
                     let state = this.board;
                     state.buttons[index].pressed = false;
-                    svg.fill(this.buttons[index], this.props.theme.buttonUp);
+                    svg.fill(this.buttons[index], this.props.buttonPairTheme.buttonUp);
                 })
                 btn.addEventListener(pointerEvents.up, ev => {
                     let state = this.board;
                     state.buttons[index].pressed = false;
-                    svg.fill(this.buttons[index], this.props.theme.buttonUp);
+                    svg.fill(this.buttons[index], this.props.buttonPairTheme.buttonUp);
 
                     this.board.bus.queue(state.buttons[index].id, DAL.MICROBIT_BUTTON_EVT_CLICK);
                 })
@@ -743,27 +735,27 @@ svg.sim.grayscale {
                 state.buttons[0].pressed = true;
                 state.buttons[1].pressed = true;
                 state.buttons[2].pressed = true;
-                svg.fill(this.buttons[0], this.props.theme.buttonDown);
-                svg.fill(this.buttons[1], this.props.theme.buttonDown);
-                svg.fill(this.buttons[2], this.props.theme.buttonDown);
+                svg.fill(this.buttons[0], this.props.buttonPairTheme.buttonDown);
+                svg.fill(this.buttons[1], this.props.buttonPairTheme.buttonDown);
+                svg.fill(this.buttons[2], this.props.buttonPairTheme.buttonDown);
             })
             this.buttonsOuter[2].addEventListener(pointerEvents.leave, ev => {
                 let state = this.board;
                 state.buttons[0].pressed = false;
                 state.buttons[1].pressed = false;
                 state.buttons[2].pressed = false;
-                svg.fill(this.buttons[0], this.props.theme.buttonUp);
-                svg.fill(this.buttons[1], this.props.theme.buttonUp);
-                svg.fill(this.buttons[2], this.props.theme.virtualButtonUp);
+                svg.fill(this.buttons[0], this.props.buttonPairTheme.buttonUp);
+                svg.fill(this.buttons[1], this.props.buttonPairTheme.buttonUp);
+                svg.fill(this.buttons[2], this.props.buttonPairTheme.virtualButtonUp);
             })
             this.buttonsOuter[2].addEventListener(pointerEvents.up, ev => {
                 let state = this.board;
                 state.buttons[0].pressed = false;
                 state.buttons[1].pressed = false;
                 state.buttons[2].pressed = false;
-                svg.fill(this.buttons[0], this.props.theme.buttonUp);
-                svg.fill(this.buttons[1], this.props.theme.buttonUp);
-                svg.fill(this.buttons[2], this.props.theme.virtualButtonUp);
+                svg.fill(this.buttons[0], this.props.buttonPairTheme.buttonUp);
+                svg.fill(this.buttons[1], this.props.buttonPairTheme.buttonUp);
+                svg.fill(this.buttons[2], this.props.buttonPairTheme.virtualButtonUp);
 
                 this.board.bus.queue(state.buttons[2].id, DAL.MICROBIT_BUTTON_EVT_CLICK);
             })
