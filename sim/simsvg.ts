@@ -31,6 +31,7 @@ namespace pxsim.micro_bit {
         buttonPairTheme?: IButtonPairTheme;
         edgeConnectorTheme?: IEdgeConnectorTheme;
         accelerometerTheme?: IAccelerometerTheme;
+        radioTheme?: IRadioTheme;
         disableTilt?: boolean;
     }
 
@@ -68,7 +69,7 @@ namespace pxsim.micro_bit {
         private ledsOuter: SVGElement[];
         private leds: SVGElement[];
         private systemLed: SVGCircleElement;
-        private antenna: SVGPolylineElement;
+        private radioSvg = new RadioSvg();
         private lightLevelButton: SVGCircleElement;
         private lightLevelGradient: SVGLinearGradientElement;
         private lightLevelText: SVGTextElement;
@@ -92,6 +93,7 @@ namespace pxsim.micro_bit {
             let buttonPairTheme = this.props.buttonPairTheme;
             let edgeConnectorTheme = this.props.edgeConnectorTheme;
             let accelerometerTheme = this.props.accelerometerTheme;
+            let radioTheme = this.props.radioTheme;
 
             svg.fill(this.display, theme.display);
             svg.fills(this.leds, theme.ledOn);
@@ -105,6 +107,7 @@ namespace pxsim.micro_bit {
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
             this.accelerometerSvg.updateTheme(accelerometerTheme);
+            this.radioSvg.updateTheme(radioTheme);
         }
 
         public updateState() {
@@ -206,22 +209,6 @@ namespace pxsim.micro_bit {
             }
         }
 
-        private lastAntennaFlash: number = 0;
-        public flashAntenna() {
-            if (!this.antenna) {
-                let ax = 380;
-                let dax = 18;
-                let ayt = 10;
-                let ayb = 40;
-                this.antenna = <SVGPolylineElement>svg.child(this.g, "polyline", { class: "sim-antenna", points: `${ax},${ayb} ${ax},${ayt} ${ax += dax},${ayt} ${ax},${ayb} ${ax += dax},${ayb} ${ax},${ayt} ${ax += dax},${ayt} ${ax},${ayb} ${ax += dax},${ayb} ${ax},${ayt} ${ax += dax},${ayt}` })
-            }
-            let now = Date.now();
-            if (now - this.lastAntennaFlash > 200) {
-                this.lastAntennaFlash = now;
-                svg.animate(this.antenna, 'sim-flash-stroke')
-            }
-        }
-
         private updateLightLevel() {
             let state = this.board;
             if (!state || !state.usesLightLevel) return;
@@ -303,11 +290,6 @@ svg.sim.grayscale {
     stroke-width: 3px;
 }
 
-.sim-antenna {
-    stroke:#555;
-    stroke-width: 2px;
-}
-
 .sim-text {
   font-family:"Lucida Console", Monaco, monospace;
   font-size:25px;
@@ -332,30 +314,10 @@ svg.sim.grayscale {
     from { opacity: 1; }
     to   { opacity: 0.75; }
 }
-
-.sim-flash {
-    animation-name: sim-flash-animation;
-    animation-duration: 0.1s;
-}
-
-@keyframes sim-flash-animation {  
-    from { fill: yellow; }
-    to   { fill: default; }
-}
-
-.sim-flash-stroke {
-    animation-name: sim-flash-stroke-animation;
-    animation-duration: 0.4s;
-    animation-timing-function: ease-in;
-}
-
-@keyframes sim-flash-stroke-animation {  
-    from { stroke: yellow; }
-    to   { stroke: default; }
-}
             `;
             this.style.textContent += this.buttonPairSvg.style;
             this.style.textContent += this.edgeConnectorSvg.style;
+            this.style.textContent += this.radioSvg.style;
 
             this.defs = <SVGDefsElement>svg.child(this.element, "defs", {});
             this.g = svg.elt("g");
@@ -427,9 +389,9 @@ svg.sim.grayscale {
             Runtime.messagePosted = (msg) => {
                 switch (msg.type || '') {
                     case 'serial': this.flashSystemLed(); break;
-                    case 'radiopacket': this.flashAntenna(); break;
                 }
             }
+            this.radioSvg.attachEvents(this.g, this.props.radioTheme);
             this.accelerometerSvg.attachEvents(pointerEvents, this.board.accelerometerCmp, !this.props.disableTilt, this.element);
             this.edgeConnectorSvg.attachEvents(pointerEvents, this.board.bus, this.board.edgeConnectorState, this.element);
             this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.accelerometerTheme);

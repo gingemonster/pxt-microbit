@@ -27,88 +27,11 @@ namespace pxsim {
         }
     }
 
-    export interface PacketBuffer {
-        data: number[] | string;
-        rssi?: number;
-    }
-
-    export class RadioDatagram {
-        datagram: PacketBuffer[] = [];
-        lastReceived: PacketBuffer = {
-            data: [0, 0, 0, 0],
-            rssi: -1
-        };
-
-        constructor(private runtime: Runtime) {
-        }
-
-        queue(packet: PacketBuffer) {
-            if (this.datagram.length < 5) {
-                this.datagram.push(packet);
-                (<Board>runtime.board).bus.queue(DAL.MICROBIT_ID_RADIO, DAL.MICROBIT_RADIO_EVT_DATAGRAM);
-            }
-        }
-
-        send(buffer: number[] | string) {
-            if (buffer instanceof String) buffer = buffer.slice(0, 32);
-            else buffer = buffer.slice(0, 8);
-
-            Runtime.postMessage(<SimulatorRadioPacketMessage>{
-                type: "radiopacket",
-                data: buffer
-            })
-        }
-
-        recv(): PacketBuffer {
-            let r = this.datagram.shift();
-            if (!r) r = {
-                data: [0, 0, 0, 0],
-                rssi: -1
-            };
-            return this.lastReceived = r;
-        }
-    }
-
-    export class RadioBus {
-        // uint8_t radioDefaultGroup = MICROBIT_RADIO_DEFAULT_GROUP;
-        groupId = 0; // todo
-        power = 0;
-        transmitSerialNumber = false;
-        datagram: RadioDatagram;
-
-        constructor(private runtime: Runtime) {
-            this.datagram = new RadioDatagram(runtime);
-        }
-
-        setGroup(id: number) {
-            this.groupId = id & 0xff; // byte only
-        }
-
-        setTransmitPower(power: number) {
-            this.power = Math.max(0, Math.min(7, power));
-        }
-
-        setTransmitSerialNumber(sn: boolean) {
-            this.transmitSerialNumber = !!sn;
-        }
-
-        broadcast(msg: number) {
-            Runtime.postMessage(<SimulatorEventBusMessage>{
-                type: "eventbus",
-                id: DAL.MES_BROADCAST_GENERAL_ID,
-                eventid: msg,
-                power: this.power,
-                group: this.groupId
-            })
-        }
-    }
-
     export class Board extends BaseBoard {
         id: string;
 
         // the bus
         bus: EventBus;
-        radio: RadioBus;
 
         // display
         image = createImage(5);
@@ -116,8 +39,10 @@ namespace pxsim {
         displayMode = DisplayMode.bw;
         font: Image = createFont();
 
+        animationQ: AnimationQueue;
+
         // pins
-        edgeConnectorState = new EdgeConnectorCmp();
+        edgeConnectorState: EdgeConnectorCmp;
 
         // serial
         serialIn: string[] = [];
@@ -125,26 +50,32 @@ namespace pxsim {
         // accelerometer
         accelerometerCmp: AccelerometerCmp;
 
+        // compass
         usesHeading = false;
         heading = 90;
 
+        // thermometer
         usesTemperature = false;
         temperature = 21;
 
+        // light sensor
         usesLightLevel = false;
         lightLevel = 128;
 
-        animationQ: AnimationQueue;
-
         //buttons
-        buttonPairState = new ButtonPairCmp();
+        buttonPairState: ButtonPairCmp;
+
+        //radio
+        radioCmp: RadioCmp;
 
         constructor() {
             super()
             this.id = "b" + Math_.random(2147483647);
             this.animationQ = new AnimationQueue(runtime);
             this.bus = new EventBus(runtime);
-            this.radio = new RadioBus(runtime);
+            this.buttonPairState = new ButtonPairCmp();
+            this.edgeConnectorState = new EdgeConnectorCmp();
+            this.radioCmp = new RadioCmp(runtime);
             this.accelerometerCmp = new AccelerometerCmp(runtime);
         }
 
@@ -161,6 +92,7 @@ namespace pxsim {
             let buttonPairTheme = pxsim.micro_bit.defaultButtonPairTheme;
             let edgeConnectorTheme = pxsim.micro_bit.defaultEdgeConnectorTheme;
             let accelerometerTheme = pxsim.micro_bit.defaultAccelerometerTheme;
+            let radioTheme = pxsim.micro_bit.defaultRadioTheme;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
@@ -168,6 +100,7 @@ namespace pxsim {
                 buttonPairTheme: buttonPairTheme,
                 edgeConnectorTheme: edgeConnectorTheme,
                 accelerometerTheme: accelerometerTheme,
+                radioTheme: radioTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children
@@ -189,7 +122,7 @@ namespace pxsim {
                     break;
                 case "radiopacket":
                     let packet = <SimulatorRadioPacketMessage>msg;
-                    this.radio.datagram.queue({ data: packet.data, rssi: packet.rssi || 0 })
+                    this.radioCmp.recievePacket(packet);
                     break;
             }
         }
