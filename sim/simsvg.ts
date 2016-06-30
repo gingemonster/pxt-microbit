@@ -30,6 +30,7 @@ namespace pxsim.micro_bit {
         theme?: IBoardTheme;
         buttonPairTheme?: IButtonPairTheme;
         edgeConnectorTheme?: IEdgeConnectorTheme;
+        accelerometerTheme?: IAccelerometerTheme;
         disableTilt?: boolean;
     }
 
@@ -90,6 +91,7 @@ namespace pxsim.micro_bit {
             let theme = this.props.theme;
             let buttonPairTheme = this.props.buttonPairTheme;
             let edgeConnectorTheme = this.props.edgeConnectorTheme;
+            let accelerometerTheme = this.props.accelerometerTheme;
 
             svg.fill(this.display, theme.display);
             svg.fills(this.leds, theme.ledOn);
@@ -102,7 +104,7 @@ namespace pxsim.micro_bit {
 
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
-            this.accelerometerSvg.updateTheme(buttonPairTheme);
+            this.accelerometerSvg.updateTheme(accelerometerTheme);
         }
 
         public updateState() {
@@ -122,7 +124,7 @@ namespace pxsim.micro_bit {
 
             this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
-            this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.buttonPairTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
+            this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
 
             if (!runtime || runtime.dead) svg.addClass(this.element, "grayscale");
             else svg.removeClass(this.element, "grayscale");
@@ -430,7 +432,7 @@ svg.sim.grayscale {
             }
             this.accelerometerSvg.attachEvents(pointerEvents, this.board.accelerometerCmp, !this.props.disableTilt, this.element);
             this.edgeConnectorSvg.attachEvents(pointerEvents, this.board.bus, this.board.edgeConnectorState, this.element);
-            this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.buttonPairTheme);
+            this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.accelerometerTheme);
         }
     }
 }

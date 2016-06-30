@@ -393,6 +393,17 @@ namespace pxsim {
 }
 
 namespace pxsim.micro_bit {
+    export interface IAccelerometerTheme {
+        gestureButtonOuter?: string;
+        gestureButtonUp?: string;
+        gestureButtonDown?: string;
+    }
+
+    export var defaultAccelerometerTheme: IAccelerometerTheme = {
+        gestureButtonOuter: "#333",
+        gestureButtonUp: "#fff",
+        gestureButtonDown: "#FFA500",
+    };
     export class AccelerometerSvg {
         private shakeButton: SVGCircleElement;
         private shakeText: SVGTextElement;
@@ -400,25 +411,25 @@ namespace pxsim.micro_bit {
         constructor() {
         }
 
-        public updateTheme(theme: IButtonPairTheme) {
+        public updateTheme(theme: IAccelerometerTheme) {
             //TODO(DZ): decouple theme
-            if (this.shakeButton) svg.fill(this.shakeButton, theme.virtualButtonUp);
+            if (this.shakeButton) svg.fill(this.shakeButton, theme.gestureButtonUp);
         }
 
-        public updateState(g: SVGElement, state: AccelerometerCmp, theme: IButtonPairTheme, 
+        public updateState(g: SVGElement, state: AccelerometerCmp, theme: IAccelerometerTheme, 
             pointerEvents: IPointerEvents, bus: EventBus, enableTilt: boolean, tiltTarget: SVGSVGElement) {
             // update gestures
             if (state.useShake && !this.shakeButton) {
                 this.shakeButton = svg.child(g, "circle", { cx: 380, cy: 100, r: 16.5 }) as SVGCircleElement;
-                svg.fill(this.shakeButton, theme.virtualButtonUp)
+                svg.fill(this.shakeButton, theme.gestureButtonUp)
                 this.shakeButton.addEventListener(pointerEvents.down, ev => {
-                    svg.fill(this.shakeButton, theme.buttonDown);
+                    svg.fill(this.shakeButton, theme.gestureButtonDown);
                 })
                 this.shakeButton.addEventListener(pointerEvents.leave, ev => {
-                    svg.fill(this.shakeButton, theme.virtualButtonUp);
+                    svg.fill(this.shakeButton, theme.gestureButtonUp);
                 })
                 this.shakeButton.addEventListener(pointerEvents.up, ev => {
-                    svg.fill(this.shakeButton, theme.virtualButtonUp);
+                    svg.fill(this.shakeButton, theme.gestureButtonUp);
                     bus.queue(DAL.MICROBIT_ID_GESTURE, 11); // GESTURE_SHAKE
                 })
                 this.shakeText = svg.child(g, "text", { x: 400, y: 110, class: "sim-text" }) as SVGTextElement;

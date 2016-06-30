@@ -160,12 +160,14 @@ namespace pxsim {
             }
             let buttonPairTheme = pxsim.micro_bit.defaultButtonPairTheme;
             let edgeConnectorTheme = pxsim.micro_bit.defaultEdgeConnectorTheme;
+            let accelerometerTheme = pxsim.micro_bit.defaultAccelerometerTheme;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
                 theme: theme,
                 buttonPairTheme: buttonPairTheme,
                 edgeConnectorTheme: edgeConnectorTheme,
+                accelerometerTheme: accelerometerTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children
