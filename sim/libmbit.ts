@@ -12,72 +12,6 @@ namespace pxsim {
         return runtime.board as Board;
     }
 
-    export interface AnimationOptions {
-        interval: number;
-        // false means last frame
-        frame: () => boolean;
-        whenDone?: (cancelled: boolean) => void;
-    }
-
-    export class AnimationQueue {
-        private queue: AnimationOptions[] = [];
-        private process: () => void;
-
-        constructor(private runtime: Runtime) {
-            this.process = () => {
-                let top = this.queue[0]
-                if (!top) return
-                if (this.runtime.dead) return
-                runtime = this.runtime
-                let res = top.frame()
-                runtime.queueDisplayUpdate()
-                runtime.maybeUpdateDisplay()
-                if (res === false) {
-                    this.queue.shift();
-                    // if there is already something in the queue, start processing
-                    if (this.queue[0])
-                        setTimeout(this.process, this.queue[0].interval)
-                    // this may push additional stuff 
-                    top.whenDone(false);
-                } else {
-                    setTimeout(this.process, top.interval)
-                }
-            }
-        }
-
-        public cancelAll() {
-            let q = this.queue
-            this.queue = []
-            for (let a of q) {
-                a.whenDone(true)
-            }
-        }
-
-        public cancelCurrent() {
-            let top = this.queue[0]
-            if (top) {
-                this.queue.shift();
-                top.whenDone(true);
-            }
-        }
-
-        public enqueue(anim: AnimationOptions) {
-            if (!anim.whenDone) anim.whenDone = () => { };
-            this.queue.push(anim)
-            // we start processing when the queue goes from 0 to 1
-            if (this.queue.length == 1)
-                this.process()
-        }
-
-        public executeAsync(anim: AnimationOptions) {
-            U.assert(!anim.whenDone)
-            return new Promise<boolean>((resolve, reject) => {
-                anim.whenDone = resolve
-                this.enqueue(anim)
-            })
-        }
-    }
-
     /**
       * Error codes used in the micro:bit runtime.
       */
@@ -99,7 +33,7 @@ namespace pxsim {
     export function panic(code: number) {
         console.log("PANIC:", code)
         led.setBrightness(255);
-        let img = board().image;
+        let img = board().displayCmp.image;
         img.clear();
         img.set(0, 4, 255);
         img.set(1, 3, 255);
@@ -170,49 +104,11 @@ namespace pxsim {
             _vca.gain.value = gain;
         }
     }
-
-
 }
 
 namespace pxsim.basic {
     export var pause = thread.pause;
     export var forever = thread.forever;
-
-    export function showNumber(x: number, interval: number) {
-        if (interval < 0) return;
-
-        let leds = createImageFromString(x.toString());
-        if (x < 0 || x >= 10) ImageMethods.scrollImage(leds, 1, interval);
-        else showLeds(leds, interval * 5);
-    }
-
-    export function showString(s: string, interval: number) {
-        if (interval < 0) return;
-        if (s.length == 0) {
-            clearScreen();
-            pause(interval * 5);
-        } else {
-            if (s.length == 1) showLeds(createImageFromString(s), interval * 5)
-            else ImageMethods.scrollImage(createImageFromString(s + " "), 1, interval);
-        }
-    }
-
-    export function showLeds(leds: Image, delay: number): void {
-        showAnimation(leds, delay);
-    }
-
-    export function clearScreen() {
-        board().image.clear();
-        runtime.queueDisplayUpdate()
-    }
-
-    export function showAnimation(leds: Image, interval: number): void {
-        ImageMethods.scrollImage(leds, 5, interval);
-    }
-
-    export function plotLeds(leds: Image): void {
-        ImageMethods.plotImage(leds, 0);
-    }
 }
 
 namespace pxsim.control {
@@ -293,46 +189,6 @@ namespace pxsim.input {
     }
 }
 
-namespace pxsim.led {
-    export function plot(x: number, y: number) {
-        board().image.set(x, y, 255);
-        runtime.queueDisplayUpdate()
-    }
-
-    export function unplot(x: number, y: number) {
-        board().image.set(x, y, 0);
-        runtime.queueDisplayUpdate()
-    }
-
-    export function point(x: number, y: number): boolean {
-        return !!board().image.get(x, y);
-    }
-
-    export function brightness(): number {
-        return board().brigthness;
-    }
-
-    export function setBrightness(value: number): void {
-        board().brigthness = value;
-        runtime.queueDisplayUpdate()
-    }
-
-    export function stopAnimation(): void {
-        board().animationQ.cancelAll();
-    }
-
-    export function setDisplayMode(mode: DisplayMode): void {
-        board().displayMode = mode;
-        runtime.queueDisplayUpdate()
-    }
-
-    export function screenshot(): Image {
-        let img = createImage(5)
-        board().image.copyTo(0, 5, img, 0);
-        return img;
-    }
-}
-
 namespace pxsim.serial {
     export function writeString(s: string) {
         board().writeSerial(s);
@@ -396,94 +252,5 @@ namespace pxsim.bluetooth {
     }
     export function startButtonService(): void {
         // TODO
-    }
-}
-
-namespace pxsim.images {
-    export function createImage(img: Image) { return img }
-    export function createBigImage(img: Image) { return img }
-}
-
-namespace pxsim.ImageMethods {
-    export function showImage(leds: Image, offset: number) {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-
-        leds.copyTo(offset, 5, board().image, 0)
-        runtime.queueDisplayUpdate()
-    }
-
-    export function plotImage(leds: Image, offset: number): void {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-
-        leds.copyTo(offset, 5, board().image, 0)
-        runtime.queueDisplayUpdate()
-    }
-
-    export function height(leds: Image): number {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-        return Image.height;
-    }
-
-    export function width(leds: Image): number {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-        return leds.width;
-    }
-
-    export function plotFrame(leds: Image, frame: number) {
-        ImageMethods.plotImage(leds, frame * Image.height);
-    }
-
-    export function showFrame(leds: Image, frame: number) {
-        ImageMethods.showImage(leds, frame * Image.height);
-    }
-
-    export function pixel(leds: Image, x: number, y: number): number {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-        return leds.get(x, y);
-    }
-
-    export function setPixel(leds: Image, x: number, y: number, v: number) {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-        leds.set(x, y, v);
-    }
-
-    export function clear(leds: Image) {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-
-        leds.clear();
-    }
-
-    export function setPixelBrightness(i: Image, x: number, y: number, b: number) {
-        if (!i) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-
-        i.set(x, y, b);
-    }
-
-    export function pixelBrightness(i: Image, x: number, y: number): number {
-        if (!i) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-
-        return i.get(x, y);
-    }
-
-    export function scrollImage(leds: Image, stride: number, interval: number): void {
-        if (!leds) panic(PanicCode.MICROBIT_NULL_DEREFERENCE);
-        if (stride == 0) stride = 1;
-
-        let cb = getResume();
-        let off = stride > 0 ? 0 : leds.width - 1;
-        let display = board().image;
-
-        board().animationQ.enqueue({
-            interval: interval,
-            frame: () => {
-                if (off >= leds.width || off < 0) return false;
-                stride > 0 ? display.shiftLeft(stride) : display.shiftRight(-stride);
-                let c = Math.min(stride, leds.width - off);
-                leds.copyTo(off, c, display, 5 - stride)
-                off += stride;
-                return true;
-            },
-            whenDone: cb
-        })
     }
 }

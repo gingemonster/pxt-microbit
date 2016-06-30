@@ -3,9 +3,6 @@ namespace pxsim.micro_bit {
 
     export interface IBoardTheme {
         accent?: string;
-        display?: string;
-        ledOn?: string;
-        ledOff?: string;
         lightLevelOn?: string;
         lightLevelOff?: string;
     }
@@ -13,9 +10,6 @@ namespace pxsim.micro_bit {
     export var themes: IBoardTheme[] = ["#3ADCFE", "#FFD43A", "#3AFFB3", "#FF3A54"].map(accent => {
         return {
             accent: accent,
-            display: "#000",
-            ledOn: "#ff7f7f",
-            ledOff: "#202020",
             lightLevelOn: "yellow",
             lightLevelOff: "#555"
         }
@@ -32,6 +26,7 @@ namespace pxsim.micro_bit {
         edgeConnectorTheme?: IEdgeConnectorTheme;
         accelerometerTheme?: IAccelerometerTheme;
         radioTheme?: IRadioTheme;
+        displayTheme?: ILedMatrixTheme;
         disableTilt?: boolean;
     }
 
@@ -63,11 +58,9 @@ namespace pxsim.micro_bit {
         private logos: SVGElement[];
         private head: SVGGElement; private headInitialized = false;
         private headText: SVGTextElement;
-        private display: SVGElement;
+        private displaySvg = new LedMatrixSvg();
         private buttonPairSvg = new ButtonPairSvg();
         private edgeConnectorSvg = new EdgeConnectorSvg();
-        private ledsOuter: SVGElement[];
-        private leds: SVGElement[];
         private systemLed: SVGCircleElement;
         private radioSvg = new RadioSvg();
         private lightLevelButton: SVGCircleElement;
@@ -94,20 +87,19 @@ namespace pxsim.micro_bit {
             let edgeConnectorTheme = this.props.edgeConnectorTheme;
             let accelerometerTheme = this.props.accelerometerTheme;
             let radioTheme = this.props.radioTheme;
+            let displayTheme = this.props.displayTheme;
 
-            svg.fill(this.display, theme.display);
-            svg.fills(this.leds, theme.ledOn);
-            svg.fills(this.ledsOuter, theme.ledOff);
             svg.fills(this.logos, theme.accent);
 
             svg.setGradientColors(this.lightLevelGradient, theme.lightLevelOn, theme.lightLevelOff);
 
-            svg.setGradientColors(this.thermometerGradient, theme.ledOff, theme.ledOn);
+            svg.setGradientColors(this.thermometerGradient, displayTheme.ledOff, displayTheme.ledOn);
 
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
             this.accelerometerSvg.updateTheme(accelerometerTheme);
             this.radioSvg.updateTheme(radioTheme);
+            this.displaySvg.updateTheme(displayTheme);
         }
 
         public updateState() {
@@ -115,16 +107,11 @@ namespace pxsim.micro_bit {
             if (!state) return;
             let theme = this.props.theme;
 
-            let bw = state.displayMode == pxsim.DisplayMode.bw
-            let img = state.image;
-            this.leds.forEach((led, i) => {
-                let sel = (<SVGStylable><any>led)
-                sel.style.opacity = ((bw ? img.data[i] > 0 ? 255 : 0 : img.data[i]) / 255.0) + "";
-            })
             this.updateHeading();
             this.updateLightLevel();
             this.updateTemperature();
 
+            this.displaySvg.updateState(state.displayCmp);
             this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
             this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
@@ -270,15 +257,6 @@ svg.sim.grayscale {
     filter: grayscale(1);
 }
 
-.sim-led-back:hover {
-    stroke:#a0a0a0;
-    stroke-width:3px;
-}
-.sim-led:hover {
-    stroke:#ff7f7f;
-    stroke-width:3px;
-}
-
 .sim-systemled {
     fill:#333;
     stroke:#555;
@@ -318,6 +296,7 @@ svg.sim.grayscale {
             this.style.textContent += this.buttonPairSvg.style;
             this.style.textContent += this.edgeConnectorSvg.style;
             this.style.textContent += this.radioSvg.style;
+            this.style.textContent += this.displaySvg.style;
 
             this.defs = <SVGDefsElement>svg.child(this.element, "defs", {});
             this.g = svg.elt("g");
@@ -333,8 +312,6 @@ svg.sim.grayscale {
             svg.path(this.g, "sim-board", "M498,31.9C498,14.3,483.7,0,466.1,0H31.9C14.3,0,0,14.3,0,31.9v342.2C0,391.7,14.3,406,31.9,406h434.2c17.6,0,31.9-14.3,31.9-31.9V31.9z M14.3,206.7c-2.7,0-4.8-2.2-4.8-4.8c0-2.7,2.2-4.8,4.8-4.8c2.7,0,4.8,2.2,4.8,4.8C19.2,204.6,17,206.7,14.3,206.7z M486.2,206.7c-2.7,0-4.8-2.2-4.8-4.8c0-2.72.2-4.8,4.8-4.8c2.7,0,4.8,2.2,4.8,4.8C491,204.6,488.8,206.7,486.2,206.7z");
 
             // script background
-            this.display = svg.path(this.g, "sim-display", "M333.8,310.3H165.9c-8.3,0-15-6.7-15-15V127.5c0-8.3,6.7-15,15-15h167.8c8.3,0,15,6.7,15,15v167.8C348.8,303.6,342.1,310.3,333.8,310.3z");
-
             this.logos = [];
             this.logos.push(svg.child(this.g, "polygon", { class: "sim-theme", points: "115,56.7 173.1,0 115,0" }));
             this.logos.push(svg.path(this.g, "sim-theme", "M114.2,0H25.9C12.1,2.1,0,13.3,0,27.7v83.9L114.2,0z"));
@@ -342,19 +319,8 @@ svg.sim.grayscale {
             this.logos.push(svg.child(this.g, "polygon", { class: "sim-theme", points: "54.1,242.4 54.1,274.1 22.4,274.1" }));
             this.logos.push(svg.child(this.g, "polygon", { class: "sim-theme", points: "446.2,164.6 446.2,132.8 477.9,132.8" }));
 
-            // leds
-            this.leds = [];
-            this.ledsOuter = [];
-            let left = 154, top = 113, ledoffw = 46, ledoffh = 44;
-            for (let i = 0; i < 5; ++i) {
-                let ledtop = i * ledoffh + top;
-                for (let j = 0; j < 5; ++j) {
-                    let ledleft = j * ledoffw + left;
-                    let k = i * 5 + j;
-                    this.ledsOuter.push(svg.child(this.g, "rect", { class: "sim-led-back", x: ledleft, y: ledtop, width: 10, height: 20, rx: 2, ry: 2 }));
-                    this.leds.push(svg.child(this.g, "rect", { class: "sim-led", x: ledleft - 2, y: ledtop - 2, width: 14, height: 24, rx: 3, ry: 3, title: `(${j},${i})` }));
-                }
-            }
+            // display 
+            this.displaySvg.buildDom(this.g);
 
             // head
             this.head = <SVGGElement>svg.child(this.g, "g", {});
