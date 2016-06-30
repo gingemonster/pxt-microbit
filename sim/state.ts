@@ -137,7 +137,7 @@ namespace pxsim {
         animationQ: AnimationQueue;
 
         //buttons
-        buttonPairState = new ButtonPairState();
+        buttonPairState = new ButtonPairCmp();
 
         constructor() {
             super()

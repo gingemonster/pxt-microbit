@@ -71,7 +71,7 @@ namespace pxsim.micro_bit {
             svg.fill(this.buttons[2], buttonPairTheme.virtualButtonUp);
         }
 
-        public updateState(g: SVGElement, state: ButtonPairState, buttonPairTheme: IButtonPairTheme) {
+        public updateState(g: SVGElement, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             state.buttons.forEach((btn, index) => {
                 svg.fill(this.buttons[index], btn.pressed ? buttonPairTheme.buttonDown : buttonPairTheme.buttonUp);
             });
@@ -79,7 +79,7 @@ namespace pxsim.micro_bit {
             this.updateButtonAB(g, state, buttonPairTheme);
         }
 
-        private updateButtonAB(g: SVGElement, state: ButtonPairState, buttonPairTheme: IButtonPairTheme) {
+        private updateButtonAB(g: SVGElement, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             if (state.usesButtonAB && !this.buttonABText) {
                 (<any>this.buttonsOuter[2]).style.visibility = "visible";
                 (<any>this.buttons[2]).style.visibility = "visible";
@@ -117,7 +117,7 @@ namespace pxsim.micro_bit {
             (<any>this.buttons[2]).style.visibility = "hidden";
         }
         
-        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: ButtonPairState, buttonPairTheme: IButtonPairTheme) {
+        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             this.buttonsOuter.slice(0, 2).forEach((btn, index) => {
                 btn.addEventListener(pointerEvents.down, ev => {
                     state.buttons[index].pressed = true;
@@ -170,7 +170,7 @@ namespace pxsim {
         pressed: boolean;
     }
 
-    export class ButtonPairState {
+    export class ButtonPairCmp {
         usesButtonAB: boolean = false;
         buttons: Button[];
 
