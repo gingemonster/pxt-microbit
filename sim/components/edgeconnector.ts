@@ -56,7 +56,7 @@ namespace pxsim.micro_bit {
             this.pinGradients.forEach(lg => svg.setGradientColors(lg, theme.pin, theme.pinActive));
         }
 
-        public updateState(g: SVGElement, state: EdgeConnectorState, edgeConnectorTheme: IEdgeConnectorTheme) {
+        public updateState(g: SVGElement, state: EdgeConnectorCmp, edgeConnectorTheme: IEdgeConnectorTheme) {
             if (!state) return;
 
             state.pins.forEach((pin, i) => this.updatePin(pin, i));
@@ -135,7 +135,7 @@ namespace pxsim.micro_bit {
             this.pinTexts = [67, 165, 275].map(x => <SVGTextElement>svg.child(g, "text", { class: "sim-text-pin", x: x, y: 345 }));
         }
         
-        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: EdgeConnectorState, element: SVGSVGElement) {
+        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: EdgeConnectorCmp, element: SVGSVGElement) {
             this.pins.forEach((pin, index) => {
                 if (!state.pins[index]) return;
                 let pt = element.createSVGPoint();
@@ -220,7 +220,7 @@ namespace pxsim {
         }
     }
 
-    export class EdgeConnectorState {
+    export class EdgeConnectorCmp {
         pins: Pin[];
 
         constructor() {

@@ -117,7 +117,7 @@ namespace pxsim {
         font: Image = createFont();
 
         // pins
-        edgeConnectorState = new EdgeConnectorState();
+        edgeConnectorState = new EdgeConnectorCmp();
 
         // serial
         serialIn: string[] = [];
