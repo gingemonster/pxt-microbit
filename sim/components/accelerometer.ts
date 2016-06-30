@@ -4,7 +4,7 @@
 
 namespace pxsim.input {
     export function onGesture(gesture: number, handler: RefAction) {
-        let b = board();
+        let b = board().accelerometerCmp;
         b.accelerometer.activate();
 
         if (gesture == 11 && !b.useShake) { // SAKE
@@ -15,7 +15,7 @@ namespace pxsim.input {
     }
 
     export function acceleration(dimension: number): number {
-        let b = board();
+        let b = board().accelerometerCmp;
         let acc = b.accelerometer;
         acc.activate();
         switch (dimension) {
@@ -27,7 +27,7 @@ namespace pxsim.input {
     }
 
     export function rotation(kind: number): number {
-        let b = board();
+        let b = board().accelerometerCmp;
         let acc = b.accelerometer;
         acc.activate();
         let x = acc.getX(MicroBitCoordinateSystem.NORTH_EAST_DOWN);
@@ -46,7 +46,7 @@ namespace pxsim.input {
     }
 
     export function setAccelerometerRange(range: number) {
-        let b = board();
+        let b = board().accelerometerCmp;
         b.accelerometer.setSampleRange(range);
     }
 }
@@ -380,5 +380,112 @@ namespace pxsim {
             this.pitch = Math.atan(-x / (y * Math.sin(this.roll) + z * Math.cos(this.roll)));
         }
 
+    }
+
+    export class AccelerometerCmp {
+        accelerometer: Accelerometer;
+        useShake = false;
+
+        constructor(runtime: Runtime) {
+           this.accelerometer = new Accelerometer(runtime);
+        }
+    }
+}
+
+namespace pxsim.micro_bit {
+    export class AccelerometerSvg {
+        private shakeButton: SVGCircleElement;
+        private shakeText: SVGTextElement;
+
+        constructor() {
+        }
+
+        public updateTheme(theme: IButtonPairTheme) {
+            //TODO(DZ): decouple theme
+            if (this.shakeButton) svg.fill(this.shakeButton, theme.virtualButtonUp);
+        }
+
+        public updateState(g: SVGElement, state: AccelerometerCmp, theme: IButtonPairTheme, 
+            pointerEvents: IPointerEvents, bus: EventBus, enableTilt: boolean, tiltTarget: SVGSVGElement) {
+            // update gestures
+            if (state.useShake && !this.shakeButton) {
+                this.shakeButton = svg.child(g, "circle", { cx: 380, cy: 100, r: 16.5 }) as SVGCircleElement;
+                svg.fill(this.shakeButton, theme.virtualButtonUp)
+                this.shakeButton.addEventListener(pointerEvents.down, ev => {
+                    svg.fill(this.shakeButton, theme.buttonDown);
+                })
+                this.shakeButton.addEventListener(pointerEvents.leave, ev => {
+                    svg.fill(this.shakeButton, theme.virtualButtonUp);
+                })
+                this.shakeButton.addEventListener(pointerEvents.up, ev => {
+                    svg.fill(this.shakeButton, theme.virtualButtonUp);
+                    bus.queue(DAL.MICROBIT_ID_GESTURE, 11); // GESTURE_SHAKE
+                })
+                this.shakeText = svg.child(g, "text", { x: 400, y: 110, class: "sim-text" }) as SVGTextElement;
+                this.shakeText.textContent = "SHAKE"
+            }
+
+            this.updateTilt(state,  enableTilt, tiltTarget)
+        }
+
+        private updateTilt(state: AccelerometerCmp, enableTilt: boolean, tiltTarget: SVGSVGElement) {
+            if (!enableTilt) return;
+            let accel = state.accelerometer;
+            if (!state || !accel.isActive) return;
+
+            let x = accel.getX();
+            let y = accel.getY();
+            let af = 8 / 1023;
+
+            tiltTarget.style.transform = "perspective(30em) rotateX(" + y * af + "deg) rotateY(" + x * af + "deg)"
+            tiltTarget.style.perspectiveOrigin = "50% 50% 50%";
+            tiltTarget.style.perspective = "30em";
+        }
+
+        public attachEvents(pointerEvents: IPointerEvents, state: AccelerometerCmp, enableTilt: boolean, tiltTarget: SVGSVGElement) {
+            let tiltDecayer = 0;
+            tiltTarget.addEventListener(pointerEvents.move, (ev: MouseEvent) => {
+                if (!state.accelerometer.isActive) return;
+
+                if (tiltDecayer) {
+                    clearInterval(tiltDecayer);
+                    tiltDecayer = 0;
+                }
+
+                let ax = (ev.clientX - tiltTarget.clientWidth / 2) / (tiltTarget.clientWidth / 3);
+                let ay = (ev.clientY - tiltTarget.clientHeight / 2) / (tiltTarget.clientHeight / 3);
+
+                let x = - Math.max(- 1023, Math.min(1023, Math.floor(ax * 1023)));
+                let y = Math.max(- 1023, Math.min(1023, Math.floor(ay * 1023)));
+                let z2 = 1023 * 1023 - x * x - y * y;
+                let z = Math.floor((z2 > 0 ? -1 : 1) * Math.sqrt(Math.abs(z2)));
+
+                state.accelerometer.update(x, y, z);
+                this.updateTilt(state, enableTilt, tiltTarget);
+            }, false);
+            tiltTarget.addEventListener(pointerEvents.leave, (ev: MouseEvent) => {
+                let accel = state.accelerometer;
+                if (!accel.isActive) return;
+
+                if (!tiltDecayer) {
+                    tiltDecayer = setInterval(() => {
+                        let accx = accel.getX(MicroBitCoordinateSystem.RAW);
+                        accx = Math.floor(Math.abs(accx) * 0.85) * (accx > 0 ? 1 : -1);
+                        let accy = accel.getY(MicroBitCoordinateSystem.RAW);
+                        accy = Math.floor(Math.abs(accy) * 0.85) * (accy > 0 ? 1 : -1);
+                        let accz = -Math.sqrt(Math.max(0, 1023 * 1023 - accx * accx - accy * accy));
+                        if (Math.abs(accx) <= 24 && Math.abs(accy) <= 24) {
+                            clearInterval(tiltDecayer);
+                            tiltDecayer = 0;
+                            accx = 0;
+                            accy = 0;
+                            accz = -1023;
+                        }
+                        accel.update(accx, accy, accz);
+                        this.updateTilt(state, enableTilt, tiltTarget);
+                    }, 50)
+                }
+            }, false);
+        }
     }
 }

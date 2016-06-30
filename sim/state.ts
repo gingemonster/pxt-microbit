@@ -122,11 +122,8 @@ namespace pxsim {
         // serial
         serialIn: string[] = [];
 
-        // sensors
-        accelerometer: Accelerometer;
-
-        // gestures
-        useShake = false;
+        // accelerometer
+        accelerometerCmp: AccelerometerCmp;
 
         usesHeading = false;
         heading = 90;
@@ -148,7 +145,7 @@ namespace pxsim {
             this.animationQ = new AnimationQueue(runtime);
             this.bus = new EventBus(runtime);
             this.radio = new RadioBus(runtime);
-            this.accelerometer = new Accelerometer(runtime);
+            this.accelerometerCmp = new AccelerometerCmp(runtime);
         }
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {

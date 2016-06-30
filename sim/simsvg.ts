@@ -74,8 +74,7 @@ namespace pxsim.micro_bit {
         private thermometerGradient: SVGLinearGradientElement;
         private thermometer: SVGRectElement;
         private thermometerText: SVGTextElement;
-        private shakeButton: SVGCircleElement;
-        private shakeText: SVGTextElement;
+        private accelerometerSvg = new AccelerometerSvg();
         public board: pxsim.Board;
 
         constructor(public props: IBoardProps) {
@@ -96,7 +95,6 @@ namespace pxsim.micro_bit {
             svg.fills(this.leds, theme.ledOn);
             svg.fills(this.ledsOuter, theme.ledOff);
             svg.fills(this.logos, theme.accent);
-            if (this.shakeButton) svg.fill(this.shakeButton, buttonPairTheme.virtualButtonUp);
 
             svg.setGradientColors(this.lightLevelGradient, theme.lightLevelOn, theme.lightLevelOff);
 
@@ -104,6 +102,7 @@ namespace pxsim.micro_bit {
 
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
+            this.accelerometerSvg.updateTheme(buttonPairTheme);
         }
 
         public updateState() {
@@ -117,40 +116,16 @@ namespace pxsim.micro_bit {
                 let sel = (<SVGStylable><any>led)
                 sel.style.opacity = ((bw ? img.data[i] > 0 ? 255 : 0 : img.data[i]) / 255.0) + "";
             })
-            this.updateTilt();
             this.updateHeading();
             this.updateLightLevel();
             this.updateTemperature();
-            this.updateGestures();
 
             this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
+            this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.buttonPairTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
 
             if (!runtime || runtime.dead) svg.addClass(this.element, "grayscale");
             else svg.removeClass(this.element, "grayscale");
-        }
-
-        private updateGestures() {
-            let state = this.board;
-            if (state.useShake && !this.shakeButton) {
-                this.shakeButton = svg.child(this.g, "circle", { cx: 380, cy: 100, r: 16.5 }) as SVGCircleElement;
-                svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp)
-                this.shakeButton.addEventListener(pointerEvents.down, ev => {
-                    let state = this.board;
-                    svg.fill(this.shakeButton, this.props.buttonPairTheme.buttonDown);
-                })
-                this.shakeButton.addEventListener(pointerEvents.leave, ev => {
-                    let state = this.board;
-                    svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp);
-                })
-                this.shakeButton.addEventListener(pointerEvents.up, ev => {
-                    let state = this.board;
-                    svg.fill(this.shakeButton, this.props.buttonPairTheme.virtualButtonUp);
-                    this.board.bus.queue(DAL.MICROBIT_ID_GESTURE, 11); // GESTURE_SHAKE
-                })
-                this.shakeText = svg.child(this.g, "text", { x: 400, y: 110, class: "sim-text" }) as SVGTextElement;
-                this.shakeText.textContent = "SHAKE"
-            }
         }
 
         private updateTemperature() {
@@ -283,20 +258,6 @@ namespace pxsim.micro_bit {
             let lv = this.board.lightLevel;
             svg.setGradientValue(this.lightLevelGradient, Math.min(100, Math.max(0, Math.floor(lv * 100 / 255))) + '%')
             this.lightLevelText.textContent = lv.toString();
-        }
-
-        private updateTilt() {
-            if (this.props.disableTilt) return;
-            let state = this.board;
-            if (!state || !state.accelerometer.isActive) return;
-
-            let x = state.accelerometer.getX();
-            let y = state.accelerometer.getY();
-            let af = 8 / 1023;
-
-            this.element.style.transform = "perspective(30em) rotateX(" + y * af + "deg) rotateY(" + x * af + "deg)"
-            this.element.style.perspectiveOrigin = "50% 50% 50%";
-            this.element.style.perspective = "30em";
         }
 
         private buildDom() {
@@ -467,51 +428,7 @@ svg.sim.grayscale {
                     case 'radiopacket': this.flashAntenna(); break;
                 }
             }
-            let tiltDecayer = 0;
-            this.element.addEventListener(pointerEvents.move, (ev: MouseEvent) => {
-                let state = this.board;
-                if (!state.accelerometer.isActive) return;
-
-                if (tiltDecayer) {
-                    clearInterval(tiltDecayer);
-                    tiltDecayer = 0;
-                }
-
-                let ax = (ev.clientX - this.element.clientWidth / 2) / (this.element.clientWidth / 3);
-                let ay = (ev.clientY - this.element.clientHeight / 2) / (this.element.clientHeight / 3);
-
-                let x = - Math.max(- 1023, Math.min(1023, Math.floor(ax * 1023)));
-                let y = Math.max(- 1023, Math.min(1023, Math.floor(ay * 1023)));
-                let z2 = 1023 * 1023 - x * x - y * y;
-                let z = Math.floor((z2 > 0 ? -1 : 1) * Math.sqrt(Math.abs(z2)));
-
-                state.accelerometer.update(x, y, z);
-                this.updateTilt();
-            }, false);
-            this.element.addEventListener(pointerEvents.leave, (ev: MouseEvent) => {
-                let state = this.board;
-                if (!state.accelerometer.isActive) return;
-
-                if (!tiltDecayer) {
-                    tiltDecayer = setInterval(() => {
-                        let accx = state.accelerometer.getX(MicroBitCoordinateSystem.RAW);
-                        accx = Math.floor(Math.abs(accx) * 0.85) * (accx > 0 ? 1 : -1);
-                        let accy = state.accelerometer.getY(MicroBitCoordinateSystem.RAW);
-                        accy = Math.floor(Math.abs(accy) * 0.85) * (accy > 0 ? 1 : -1);
-                        let accz = -Math.sqrt(Math.max(0, 1023 * 1023 - accx * accx - accy * accy));
-                        if (Math.abs(accx) <= 24 && Math.abs(accy) <= 24) {
-                            clearInterval(tiltDecayer);
-                            tiltDecayer = 0;
-                            accx = 0;
-                            accy = 0;
-                            accz = -1023;
-                        }
-                        state.accelerometer.update(accx, accy, accz);
-                        this.updateTilt();
-                    }, 50)
-                }
-            }, false);
-
+            this.accelerometerSvg.attachEvents(pointerEvents, this.board.accelerometerCmp, !this.props.disableTilt, this.element);
             this.edgeConnectorSvg.attachEvents(pointerEvents, this.board.bus, this.board.edgeConnectorState, this.element);
             this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.buttonPairTheme);
         }
