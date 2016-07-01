@@ -5,63 +5,26 @@
 namespace pxsim {
 
     export class MicrobitBoard extends DalBoard {
-        displayCmp: LedMatrixCmp;
-        edgeConnectorState: EdgeConnectorCmp;
-        serialCmp: SerialCmp;
-        accelerometerCmp: AccelerometerCmp;
-        compassCmp: CompassCmp;
-        thermometerCmp: ThermometerCmp;
-        lightSensorCmp: LightSensorCmp;
-        buttonPairState: ButtonPairCmp;
-        radioCmp: RadioCmp;
-
         constructor() {
             super()
-            this.displayCmp = new LedMatrixCmp(runtime);
-            this.buttonPairState = new ButtonPairCmp();
-            this.edgeConnectorState = new EdgeConnectorCmp();
-            this.radioCmp = new RadioCmp(runtime);
-            this.accelerometerCmp = new AccelerometerCmp(runtime);
-            this.serialCmp = new SerialCmp();
-            this.thermometerCmp = new ThermometerCmp();
-            this.lightSensorCmp = new LightSensorCmp();
-            this.compassCmp = new CompassCmp();
         }
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {
             let options = (msg.options || {}) as RuntimeOptions;
             let theme: boardsvg.IMicrobitTheme;
             switch (options.theme) {
-                case 'blue': theme = boardsvg.themes[0]; break;
-                case 'yellow': theme = boardsvg.themes[1]; break;
-                case 'green': theme = boardsvg.themes[2]; break;
-                case 'red': theme = boardsvg.themes[3]; break;
+                case 'blue': theme = boardsvg.mkTheme(boardsvg.accents[0]); break;
+                case 'yellow': theme = boardsvg.mkTheme(boardsvg.accents[1]); break;
+                case 'green': theme = boardsvg.mkTheme(boardsvg.accents[2]); break;
+                case 'red': theme = boardsvg.mkTheme(boardsvg.accents[3]); break;
                 default: theme = pxsim.boardsvg.randomTheme();
             }
-            let buttonPairTheme = pxsim.boardsvg.defaultButtonPairTheme;
-            let edgeConnectorTheme = pxsim.boardsvg.defaultEdgeConnectorTheme;
-            let accelerometerTheme = pxsim.boardsvg.defaultAccelerometerTheme;
-            let radioTheme = pxsim.boardsvg.defaultRadioTheme;
-            let displayTheme = pxsim.boardsvg.defaultLedMatrixTheme;
-            let serialTheme = pxsim.boardsvg.defaultSerialTheme;
-            let thermometerTheme = pxsim.boardsvg.defaultThermometerTheme;
-            let lightSensorTheme = pxsim.boardsvg.defaultLightSensorTheme;
-            let compassTheme = pxsim.boardsvg.defaultCompassTheme;
             
-            compassTheme.color = theme.accent;
+            theme.compassTheme.color = theme.accent;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.boardsvg.MicrobitSvg({
                 theme: theme,
-                buttonPairTheme: buttonPairTheme,
-                edgeConnectorTheme: edgeConnectorTheme,
-                accelerometerTheme: accelerometerTheme,
-                radioTheme: radioTheme,
-                displayTheme: displayTheme,
-                serialTheme: serialTheme,
-                thermometerTheme: thermometerTheme,
-                lightSensorTheme: lightSensorTheme,
-                compassTheme: compassTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children
@@ -69,32 +32,7 @@ namespace pxsim {
 
             return Promise.resolve();
         }
-
-        receiveMessage(msg: SimulatorMessage) {
-            if (!runtime || runtime.dead) return;
-
-            switch (msg.type || "") {
-                case "eventbus":
-                    let ev = <SimulatorEventBusMessage>msg;
-                    this.bus.queue(ev.id, ev.eventid, ev.value);
-                    break;
-                case "serial":
-                    let data = (<SimulatorSerialMessage>msg).data || "";
-                    this.serialCmp.recieveData(data);
-                    break;
-                case "radiopacket":
-                    let packet = <SimulatorRadioPacketMessage>msg;
-                    this.radioCmp.recievePacket(packet);
-                    break;
-            }
-        }
-
-        kill() {
-            super.kill();
-            AudioContextManager.stop();
-        }
     }
-
 }
 
 namespace pxsim.boardsvg {
@@ -102,30 +40,42 @@ namespace pxsim.boardsvg {
 
     export interface IMicrobitTheme {
         accent?: string;
+        buttonPairTheme: IButtonPairTheme;
+        edgeConnectorTheme: IEdgeConnectorTheme;
+        accelerometerTheme: IAccelerometerTheme;
+        radioTheme: IRadioTheme;
+        displayTheme: ILedMatrixTheme;
+        serialTheme: ISerialTheme;
+        thermometerTheme: IThermometerTheme;
+        lightSensorTheme: ILightSensorTheme;
+        compassTheme: ICompassTheme;
     }
 
-    export var themes: IMicrobitTheme[] = ["#3ADCFE", "#FFD43A", "#3AFFB3", "#FF3A54"].map(accent => {
+    export var accents = ["#3ADCFE", "#FFD43A", "#3AFFB3", "#FF3A54"];
+
+    export function mkTheme(accent: string): IMicrobitTheme {
         return {
             accent: accent,
+            buttonPairTheme: defaultButtonPairTheme,
+            edgeConnectorTheme: defaultEdgeConnectorTheme,
+            accelerometerTheme: defaultAccelerometerTheme,
+            radioTheme: defaultRadioTheme,
+            displayTheme: defaultLedMatrixTheme,
+            serialTheme: defaultSerialTheme,
+            thermometerTheme: defaultThermometerTheme,
+            lightSensorTheme: defaultLightSensorTheme,
+            compassTheme: defaultCompassTheme,
         }
-    });
+    }
 
     export function randomTheme(): IMicrobitTheme {
-        return themes[Math.floor(Math.random() * themes.length)];
+        let accent = accents[Math.floor(Math.random() * accents.length)];
+        return mkTheme(accent);
     }
 
     export interface IMicrobitProps {
         runtime: pxsim.Runtime;
         theme?: IMicrobitTheme;
-        buttonPairTheme?: IButtonPairTheme;
-        edgeConnectorTheme?: IEdgeConnectorTheme;
-        accelerometerTheme?: IAccelerometerTheme;
-        radioTheme?: IRadioTheme;
-        displayTheme?: ILedMatrixTheme;
-        serialTheme?: ISerialTheme;
-        thermometerTheme?: IThermometerTheme;
-        lightSensorTheme?: ILightSensorTheme;
-        compassTheme?: ICompassTheme;
         disableTilt?: boolean;
     }
 
@@ -136,6 +86,8 @@ namespace pxsim.boardsvg {
         private g: SVGElement;
 
         private logos: SVGElement[];
+        public board: pxsim.MicrobitBoard;
+
         private compassSvg = new CompassSvg();
         private displaySvg = new LedMatrixSvg();
         private buttonPairSvg = new ButtonPairSvg();
@@ -145,7 +97,6 @@ namespace pxsim.boardsvg {
         private thermometerSvg = new ThermometerSvg();
         private accelerometerSvg = new AccelerometerSvg();
         private lightSensorSvg = new LightSensorSvg();
-        public board: pxsim.MicrobitBoard;
 
         constructor(public props: IMicrobitProps) {
             this.board = this.props.runtime.board as pxsim.MicrobitBoard;
@@ -158,25 +109,17 @@ namespace pxsim.boardsvg {
 
         private updateTheme() {
             let theme = this.props.theme;
-            let buttonPairTheme = this.props.buttonPairTheme;
-            let edgeConnectorTheme = this.props.edgeConnectorTheme;
-            let accelerometerTheme = this.props.accelerometerTheme;
-            let radioTheme = this.props.radioTheme;
-            let displayTheme = this.props.displayTheme;
-            let serialTheme = this.props.serialTheme;
-            let thermometerTheme = this.props.thermometerTheme;
-            let lightSensorTheme = this.props.lightSensorTheme;
 
             svg.fills(this.logos, theme.accent);
 
-            this.buttonPairSvg.updateTheme(buttonPairTheme);
-            this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
-            this.accelerometerSvg.updateTheme(accelerometerTheme);
-            this.radioSvg.updateTheme(radioTheme);
-            this.displaySvg.updateTheme(displayTheme);
-            this.serialSvg.updateTheme(serialTheme);
-            this.thermometerSvg.updateTheme(thermometerTheme);
-            this.lightSensorSvg.updateTheme(lightSensorTheme);
+            this.buttonPairSvg.updateTheme(theme.buttonPairTheme);
+            this.edgeConnectorSvg.updateTheme(theme.edgeConnectorTheme);
+            this.accelerometerSvg.updateTheme(theme.accelerometerTheme);
+            this.radioSvg.updateTheme(theme.radioTheme);
+            this.displaySvg.updateTheme(theme.displayTheme);
+            this.serialSvg.updateTheme(theme.serialTheme);
+            this.thermometerSvg.updateTheme(theme.thermometerTheme);
+            this.lightSensorSvg.updateTheme(theme.lightSensorTheme);
         }
 
         public updateState() {
@@ -185,12 +128,12 @@ namespace pxsim.boardsvg {
             let theme = this.props.theme;
 
             this.displaySvg.updateState(state.displayCmp);
-            this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
-            this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
-            this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
-            this.thermometerSvg.updateState(state.thermometerCmp, this.g, this.element, this.props.thermometerTheme, this.defs);
-            this.lightSensorSvg.updateState(state.lightSensorCmp, this.g, this.element, this.props.lightSensorTheme, this.defs);
-            this.compassSvg.updateState(state.compassCmp, this.props.compassTheme, this.element);
+            this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.theme.buttonPairTheme);
+            this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.theme.edgeConnectorTheme);
+            this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.theme.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
+            this.thermometerSvg.updateState(state.thermometerCmp, this.g, this.element, this.props.theme.thermometerTheme, this.defs);
+            this.lightSensorSvg.updateState(state.lightSensorCmp, this.g, this.element, this.props.theme.lightSensorTheme, this.defs);
+            this.compassSvg.updateState(state.compassCmp, this.props.theme.compassTheme, this.element);
 
             if (!runtime || runtime.dead) svg.addClass(this.element, "grayscale");
             else svg.removeClass(this.element, "grayscale");
@@ -316,11 +259,11 @@ pointer-events: none;
         }
 
         private attachEvents() {
-            this.serialSvg.attachEvents(this.g, this.props.serialTheme);
-            this.radioSvg.attachEvents(this.g, this.props.radioTheme);
+            this.serialSvg.attachEvents(this.g, this.props.theme.serialTheme);
+            this.radioSvg.attachEvents(this.g, this.props.theme.radioTheme);
             this.accelerometerSvg.attachEvents(pointerEvents, this.board.accelerometerCmp, !this.props.disableTilt, this.element);
             this.edgeConnectorSvg.attachEvents(pointerEvents, this.board.bus, this.board.edgeConnectorState, this.element);
-            this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.accelerometerTheme);
+            this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.theme.accelerometerTheme);
         }
     }
 }

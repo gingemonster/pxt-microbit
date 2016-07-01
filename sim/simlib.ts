@@ -3,13 +3,24 @@
 /// <reference path="../libs/microbit/dal.d.ts"/>
 
 namespace pxsim {
+    export enum BoardTypes {
+        microbit,
+        arduino
+    }
+    //TODO(DZ): allow board selection
+    export const boardType = BoardTypes.microbit; 
+
     pxsim.initCurrentRuntime = () => {
         U.assert(!runtime.board);
-        runtime.board = new MicrobitBoard();
+        if (boardType == BoardTypes.microbit) {
+            runtime.board = new MicrobitBoard();
+        } else {
+            //TODO(DZ)
+        }
     }
 
     export function board() {
-        return runtime.board as MicrobitBoard;
+        return runtime.board as DalBoard;
     }
 
     /**
@@ -250,12 +261,58 @@ namespace pxsim {
 
         // the bus
         bus: EventBus;
+        
+        // components
+        //TODO(DZ): allow different component selections
+        displayCmp: LedMatrixCmp;
+        edgeConnectorState: EdgeConnectorCmp;
+        serialCmp: SerialCmp;
+        accelerometerCmp: AccelerometerCmp;
+        compassCmp: CompassCmp;
+        thermometerCmp: ThermometerCmp;
+        lightSensorCmp: LightSensorCmp;
+        buttonPairState: ButtonPairCmp;
+        radioCmp: RadioCmp;
 
         constructor() {
             super()
             this.id = "b" + Math_.random(2147483647);
             this.bus = new EventBus(runtime);
+            
+            // components
+            this.displayCmp = new LedMatrixCmp(runtime);
+            this.buttonPairState = new ButtonPairCmp();
+            this.edgeConnectorState = new EdgeConnectorCmp();
+            this.radioCmp = new RadioCmp(runtime);
+            this.accelerometerCmp = new AccelerometerCmp(runtime);
+            this.serialCmp = new SerialCmp();
+            this.thermometerCmp = new ThermometerCmp();
+            this.lightSensorCmp = new LightSensorCmp();
+            this.compassCmp = new CompassCmp();
         }
-        
+
+        receiveMessage(msg: SimulatorMessage) {
+            if (!runtime || runtime.dead) return;
+
+            switch (msg.type || "") {
+                case "eventbus":
+                    let ev = <SimulatorEventBusMessage>msg;
+                    this.bus.queue(ev.id, ev.eventid, ev.value);
+                    break;
+                case "serial":
+                    let data = (<SimulatorSerialMessage>msg).data || "";
+                    this.serialCmp.recieveData(data);
+                    break;
+                case "radiopacket":
+                    let packet = <SimulatorRadioPacketMessage>msg;
+                    this.radioCmp.recievePacket(packet);
+                    break;
+            }
+        }
+
+        kill() {
+            super.kill();
+            AudioContextManager.stop();
+        }
     }
 }
