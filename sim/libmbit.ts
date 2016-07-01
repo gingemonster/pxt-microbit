@@ -158,15 +158,6 @@ namespace pxsim.input {
         return b.heading;
     }
 
-    export function temperature(): number {
-        let b = board();
-        if (!b.usesTemperature) {
-            b.usesTemperature = true;
-            runtime.queueDisplayUpdate();
-        }
-        return b.temperature;
-    }
-
     export function lightLevel(): number {
         let b = board();
         if (!b.usesLightLevel) {

@@ -28,6 +28,7 @@ namespace pxsim.micro_bit {
         radioTheme?: IRadioTheme;
         displayTheme?: ILedMatrixTheme;
         serialTheme?: ISerialTheme;
+        thermometerTheme?: IThermometerTheme;
         disableTilt?: boolean;
     }
 
@@ -67,9 +68,7 @@ namespace pxsim.micro_bit {
         private lightLevelButton: SVGCircleElement;
         private lightLevelGradient: SVGLinearGradientElement;
         private lightLevelText: SVGTextElement;
-        private thermometerGradient: SVGLinearGradientElement;
-        private thermometer: SVGRectElement;
-        private thermometerText: SVGTextElement;
+        private thermometerSvg = new ThermometerSvg();
         private accelerometerSvg = new AccelerometerSvg();
         public board: pxsim.Board;
 
@@ -90,12 +89,11 @@ namespace pxsim.micro_bit {
             let radioTheme = this.props.radioTheme;
             let displayTheme = this.props.displayTheme;
             let serialTheme = this.props.serialTheme;
+            let thermometerTheme = this.props.thermometerTheme;
 
             svg.fills(this.logos, theme.accent);
 
             svg.setGradientColors(this.lightLevelGradient, theme.lightLevelOn, theme.lightLevelOff);
-
-            svg.setGradientColors(this.thermometerGradient, displayTheme.ledOff, displayTheme.ledOn);
 
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
@@ -103,6 +101,7 @@ namespace pxsim.micro_bit {
             this.radioSvg.updateTheme(radioTheme);
             this.displaySvg.updateTheme(displayTheme);
             this.serialSvg.updateTheme(serialTheme);
+            this.thermometerSvg.updateTheme(thermometerTheme);
         }
 
         public updateState() {
@@ -112,52 +111,15 @@ namespace pxsim.micro_bit {
 
             this.updateHeading();
             this.updateLightLevel();
-            this.updateTemperature();
 
             this.displaySvg.updateState(state.displayCmp);
             this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
             this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
+            this.thermometerSvg.updateState(state.thermometerCmp, this.g, this.element, this.props.thermometerTheme, this.defs);
 
             if (!runtime || runtime.dead) svg.addClass(this.element, "grayscale");
             else svg.removeClass(this.element, "grayscale");
-        }
-
-        private updateTemperature() {
-            let state = this.board;
-            if (!state || !state.usesTemperature) return;
-
-            let tmin = -5;
-            let tmax = 50;
-            if (!this.thermometer) {
-                let gid = "gradient-thermometer";
-                this.thermometerGradient = svg.linearGradient(this.defs, gid);
-                this.thermometer = <SVGRectElement>svg.child(this.g, "rect", {
-                    class: "sim-thermometer",
-                    x: 120,
-                    y: 110,
-                    width: 20,
-                    height: 160,
-                    rx: 5, ry: 5,
-                    fill: `url(#${gid})`
-                });
-                this.thermometerText = svg.child(this.g, "text", { class: 'sim-text', x: 58, y: 130 }) as SVGTextElement;
-                this.updateTheme();
-
-                let pt = this.element.createSVGPoint();
-                svg.buttonEvents(this.thermometer,
-                    (ev) => {
-                        let cur = svg.cursorPoint(pt, this.element, ev);
-                        let t = Math.max(0, Math.min(1, (260 - cur.y) / 140))
-                        state.temperature = Math.floor(tmin + t * (tmax - tmin));
-                        this.updateTemperature();
-                    }, ev => { }, ev => { })
-            }
-
-            let t = Math.max(tmin, Math.min(tmax, state.temperature))
-            let per = Math.floor((state.temperature - tmin) / (tmax - tmin) * 100)
-            svg.setGradientValue(this.thermometerGradient, 100 - per + "%");
-            this.thermometerText.textContent = t + "°C";
         }
 
         private updateHeading() {
@@ -262,11 +224,6 @@ svg.sim.grayscale {
   pointer-events: none;
 }
 
-.sim-thermometer {
-    stroke:#aaa;
-    stroke-width: 3px;
-}
-
 /* animations */
 .sim-theme-glow {
     animation-name: sim-theme-glow-animation;
@@ -306,6 +263,7 @@ svg.sim.grayscale {
             this.style.textContent += this.radioSvg.style;
             this.style.textContent += this.displaySvg.style;
             this.style.textContent += this.serialSvg.style;
+            this.style.textContent += this.thermometerSvg.style;
 
             this.defs = <SVGDefsElement>svg.child(this.element, "defs", {});
             this.g = svg.elt("g");
