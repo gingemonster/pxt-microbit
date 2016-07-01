@@ -5,31 +5,14 @@
 namespace pxsim {
 
     export class MicrobitBoard extends DalBoard {
-        // display
         displayCmp: LedMatrixCmp;
-
-        // pins
         edgeConnectorState: EdgeConnectorCmp;
-
-        // serial
         serialCmp: SerialCmp;
-
-        // accelerometer
         accelerometerCmp: AccelerometerCmp;
-
-        // compass
         compassCmp: CompassCmp;
-
-        // thermometer
         thermometerCmp: ThermometerCmp;
-
-        // light sensor
         lightSensorCmp: LightSensorCmp;
-
-        //buttons
         buttonPairState: ButtonPairCmp;
-
-        //radio
         radioCmp: RadioCmp;
 
         constructor() {
