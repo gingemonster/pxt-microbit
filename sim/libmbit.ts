@@ -5,11 +5,11 @@
 namespace pxsim {
     pxsim.initCurrentRuntime = () => {
         U.assert(!runtime.board);
-        runtime.board = new Board();
+        runtime.board = new MicrobitBoard();
     }
 
     export function board() {
-        return runtime.board as Board;
+        return runtime.board as MicrobitBoard;
     }
 
     /**
