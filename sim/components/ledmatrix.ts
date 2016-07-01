@@ -178,7 +178,7 @@ namespace pxsim {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface ILedMatrixTheme {
         display?: string;
         ledOn?: string;

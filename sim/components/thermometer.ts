@@ -11,7 +11,7 @@ namespace pxsim {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface IThermometerTheme {
         foreground: string,
         background: string

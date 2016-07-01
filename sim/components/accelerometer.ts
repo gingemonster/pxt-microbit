@@ -392,7 +392,7 @@ namespace pxsim {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface IAccelerometerTheme {
         gestureButtonOuter?: string;
         gestureButtonUp?: string;

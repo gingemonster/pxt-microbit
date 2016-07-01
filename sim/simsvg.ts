@@ -1,4 +1,4 @@
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     const svg = pxsim.svg;
 
     export interface IBoardTheme {

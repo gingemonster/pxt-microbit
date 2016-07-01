@@ -72,28 +72,28 @@ namespace pxsim {
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {
             let options = (msg.options || {}) as RuntimeOptions;
-            let theme: micro_bit.IBoardTheme;
+            let theme: boardsvg.IBoardTheme;
             switch (options.theme) {
-                case 'blue': theme = micro_bit.themes[0]; break;
-                case 'yellow': theme = micro_bit.themes[1]; break;
-                case 'green': theme = micro_bit.themes[2]; break;
-                case 'red': theme = micro_bit.themes[3]; break;
-                default: theme = pxsim.micro_bit.randomTheme();
+                case 'blue': theme = boardsvg.themes[0]; break;
+                case 'yellow': theme = boardsvg.themes[1]; break;
+                case 'green': theme = boardsvg.themes[2]; break;
+                case 'red': theme = boardsvg.themes[3]; break;
+                default: theme = pxsim.boardsvg.randomTheme();
             }
-            let buttonPairTheme = pxsim.micro_bit.defaultButtonPairTheme;
-            let edgeConnectorTheme = pxsim.micro_bit.defaultEdgeConnectorTheme;
-            let accelerometerTheme = pxsim.micro_bit.defaultAccelerometerTheme;
-            let radioTheme = pxsim.micro_bit.defaultRadioTheme;
-            let displayTheme = pxsim.micro_bit.defaultLedMatrixTheme;
-            let serialTheme = pxsim.micro_bit.defaultSerialTheme;
-            let thermometerTheme = pxsim.micro_bit.defaultThermometerTheme;
-            let lightSensorTheme = pxsim.micro_bit.defaultLightSensorTheme;
-            let compassTheme = pxsim.micro_bit.defaultCompassTheme;
+            let buttonPairTheme = pxsim.boardsvg.defaultButtonPairTheme;
+            let edgeConnectorTheme = pxsim.boardsvg.defaultEdgeConnectorTheme;
+            let accelerometerTheme = pxsim.boardsvg.defaultAccelerometerTheme;
+            let radioTheme = pxsim.boardsvg.defaultRadioTheme;
+            let displayTheme = pxsim.boardsvg.defaultLedMatrixTheme;
+            let serialTheme = pxsim.boardsvg.defaultSerialTheme;
+            let thermometerTheme = pxsim.boardsvg.defaultThermometerTheme;
+            let lightSensorTheme = pxsim.boardsvg.defaultLightSensorTheme;
+            let compassTheme = pxsim.boardsvg.defaultCompassTheme;
             
             compassTheme.color = theme.accent;
 
             console.log("setting up microbit simulator")
-            let view = new pxsim.micro_bit.MicrobitBoardSvg({
+            let view = new pxsim.boardsvg.MicrobitBoardSvg({
                 theme: theme,
                 buttonPairTheme: buttonPairTheme,
                 edgeConnectorTheme: edgeConnectorTheme,

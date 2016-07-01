@@ -92,7 +92,7 @@ namespace pxsim {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface IRadioTheme {
         antenna?: string
         //TODO(DZ): parameterize flash color

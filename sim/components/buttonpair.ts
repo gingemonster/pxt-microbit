@@ -25,7 +25,7 @@ namespace pxsim.input {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface IButtonPairTheme {
         buttonOuter?: string;
         buttonUp?: string;
@@ -116,7 +116,7 @@ namespace pxsim.micro_bit {
             (<any>this.buttonsOuter[2]).style.visibility = "hidden";
             (<any>this.buttons[2]).style.visibility = "hidden";
         }
-        
+
         public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             this.buttonsOuter.slice(0, 2).forEach((btn, index) => {
                 btn.addEventListener(pointerEvents.down, ev => {

@@ -34,7 +34,7 @@ namespace pxsim {
     }
 }
 
-namespace pxsim.micro_bit {
+namespace pxsim.boardsvg {
     export interface ISerialTheme {
         systemLedStroke: string,
         systemLedFill: string
