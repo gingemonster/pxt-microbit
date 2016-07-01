@@ -35,7 +35,7 @@ namespace pxsim {
         edgeConnectorState: EdgeConnectorCmp;
 
         // serial
-        serialIn: string[] = [];
+        serialCmp: SerialCmp;
 
         // accelerometer
         accelerometerCmp: AccelerometerCmp;
@@ -61,12 +61,13 @@ namespace pxsim {
         constructor() {
             super()
             this.id = "b" + Math_.random(2147483647);
-            this.displayCmp = new LedMatrixCmp(runtime);
             this.bus = new EventBus(runtime);
+            this.displayCmp = new LedMatrixCmp(runtime);
             this.buttonPairState = new ButtonPairCmp();
             this.edgeConnectorState = new EdgeConnectorCmp();
             this.radioCmp = new RadioCmp(runtime);
             this.accelerometerCmp = new AccelerometerCmp(runtime);
+            this.serialCmp = new SerialCmp();
         }
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {
@@ -84,6 +85,7 @@ namespace pxsim {
             let accelerometerTheme = pxsim.micro_bit.defaultAccelerometerTheme;
             let radioTheme = pxsim.micro_bit.defaultRadioTheme;
             let displayTheme = pxsim.micro_bit.defaultLedMatrixTheme;
+            let serialTheme = pxsim.micro_bit.defaultSerialTheme;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
@@ -93,6 +95,7 @@ namespace pxsim {
                 accelerometerTheme: accelerometerTheme,
                 radioTheme: radioTheme,
                 displayTheme: displayTheme,
+                serialTheme: serialTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children
@@ -110,7 +113,8 @@ namespace pxsim {
                     this.bus.queue(ev.id, ev.eventid, ev.value);
                     break;
                 case "serial":
-                    this.serialIn.push((<SimulatorSerialMessage>msg).data || "");
+                    let data = (<SimulatorSerialMessage>msg).data || "";
+                    this.serialCmp.recieveData(data);
                     break;
                 case "radiopacket":
                     let packet = <SimulatorRadioPacketMessage>msg;
@@ -119,31 +123,9 @@ namespace pxsim {
             }
         }
 
-        readSerial() {
-            let v = this.serialIn.shift() || "";
-            return v;
-        }
-
         kill() {
             super.kill();
             AudioContextManager.stop();
-        }
-
-        serialOutBuffer: string = "";
-        writeSerial(s: string) {
-            for (let i = 0; i < s.length; ++i) {
-                let c = s[i];
-                this.serialOutBuffer += c;
-                if (c == "\n") {
-                    Runtime.postMessage(<SimulatorSerialMessage>{
-                        type: "serial",
-                        data: this.serialOutBuffer,
-                        id: runtime.id
-                    })
-                    this.serialOutBuffer = ""
-                    break;
-                }
-            }
         }
     }
 }

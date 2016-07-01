@@ -189,29 +189,6 @@ namespace pxsim.input {
     }
 }
 
-namespace pxsim.serial {
-    export function writeString(s: string) {
-        board().writeSerial(s);
-    }
-
-    export function readString(): string {
-        return board().readSerial();
-    }
-
-    export function readLine(): string {
-        return board().readSerial();
-    }
-
-    export function onDataReceived(delimiters: string, handler: RefAction) {
-        let b = board();
-        b.bus.listen(DAL.MICROBIT_ID_SERIAL, DAL.MICROBIT_SERIAL_EVT_DELIM_MATCH, handler);
-    }
-
-    export function redirect(tx: number, rx: number, rate: number) {
-        // TODO?
-    }
-}
-
 namespace pxsim.pins {
     export function onPulsed(name: number, pulse: number, body: RefAction) {
     }

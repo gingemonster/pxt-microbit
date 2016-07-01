@@ -108,27 +108,6 @@ namespace pxsim.micro_bit {
 .sim-antenna {
     stroke-width: 2px;
 }
-
-.sim-flash {
-    animation-name: sim-flash-animation;
-    animation-duration: 0.1s;
-}
-
-@keyframes sim-flash-animation {  
-    from { fill: yellow; }
-    to   { fill: default; }
-}
-
-.sim-flash-stroke {
-    animation-name: sim-flash-stroke-animation;
-    animation-duration: 0.4s;
-    animation-timing-function: ease-in;
-}
-
-@keyframes sim-flash-stroke-animation {  
-    from { stroke: yellow; }
-    to   { stroke: default; }
-}
 `;
 
         public updateTheme(theme: IRadioTheme) {
