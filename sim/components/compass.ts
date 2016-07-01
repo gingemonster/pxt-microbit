@@ -76,4 +76,9 @@ namespace pxsim.input {
         }
         return b.heading;
     }
+    
+    export function magneticForce(): number {
+        // TODO
+        return 0;
+    }
 }

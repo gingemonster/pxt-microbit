@@ -149,11 +149,6 @@ namespace pxsim.pxt {
 }
 
 namespace pxsim.input {
-    export function magneticForce(): number {
-        // TODO
-        return 0;
-    }
-
     export function runningTime(): number {
         return runtime.runningTime();
     }
