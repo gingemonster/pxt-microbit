@@ -48,8 +48,7 @@ namespace pxsim {
         thermometerCmp: ThermometerCmp;
 
         // light sensor
-        usesLightLevel = false;
-        lightLevel = 128;
+        lightSensorCmp: LightSensorCmp;
 
         //buttons
         buttonPairState: ButtonPairCmp;
@@ -68,6 +67,7 @@ namespace pxsim {
             this.accelerometerCmp = new AccelerometerCmp(runtime);
             this.serialCmp = new SerialCmp();
             this.thermometerCmp = new ThermometerCmp();
+            this.lightSensorCmp = new LightSensorCmp();
         }
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {
@@ -87,6 +87,7 @@ namespace pxsim {
             let displayTheme = pxsim.micro_bit.defaultLedMatrixTheme;
             let serialTheme = pxsim.micro_bit.defaultSerialTheme;
             let thermometerTheme = pxsim.micro_bit.defaultThermometerTheme;
+            let lightSensorTheme = pxsim.micro_bit.defaultLightSensorTheme;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
@@ -98,6 +99,7 @@ namespace pxsim {
                 displayTheme: displayTheme,
                 serialTheme: serialTheme,
                 thermometerTheme: thermometerTheme,
+                lightSensorTheme: lightSensorTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children

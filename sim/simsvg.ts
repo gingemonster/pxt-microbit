@@ -3,15 +3,11 @@ namespace pxsim.micro_bit {
 
     export interface IBoardTheme {
         accent?: string;
-        lightLevelOn?: string;
-        lightLevelOff?: string;
     }
 
     export var themes: IBoardTheme[] = ["#3ADCFE", "#FFD43A", "#3AFFB3", "#FF3A54"].map(accent => {
         return {
             accent: accent,
-            lightLevelOn: "yellow",
-            lightLevelOff: "#555"
         }
     });
 
@@ -29,6 +25,7 @@ namespace pxsim.micro_bit {
         displayTheme?: ILedMatrixTheme;
         serialTheme?: ISerialTheme;
         thermometerTheme?: IThermometerTheme;
+        lightSensorTheme?: ILightSensorTheme;
         disableTilt?: boolean;
     }
 
@@ -65,11 +62,9 @@ namespace pxsim.micro_bit {
         private edgeConnectorSvg = new EdgeConnectorSvg();
         private serialSvg = new SerialSvg();
         private radioSvg = new RadioSvg();
-        private lightLevelButton: SVGCircleElement;
-        private lightLevelGradient: SVGLinearGradientElement;
-        private lightLevelText: SVGTextElement;
         private thermometerSvg = new ThermometerSvg();
         private accelerometerSvg = new AccelerometerSvg();
+        private lightSensorSvg = new LightSensorSvg();
         public board: pxsim.Board;
 
         constructor(public props: IBoardProps) {
@@ -90,10 +85,9 @@ namespace pxsim.micro_bit {
             let displayTheme = this.props.displayTheme;
             let serialTheme = this.props.serialTheme;
             let thermometerTheme = this.props.thermometerTheme;
+            let lightSensorTheme = this.props.lightSensorTheme;
 
             svg.fills(this.logos, theme.accent);
-
-            svg.setGradientColors(this.lightLevelGradient, theme.lightLevelOn, theme.lightLevelOff);
 
             this.buttonPairSvg.updateTheme(buttonPairTheme);
             this.edgeConnectorSvg.updateTheme(edgeConnectorTheme);
@@ -102,6 +96,7 @@ namespace pxsim.micro_bit {
             this.displaySvg.updateTheme(displayTheme);
             this.serialSvg.updateTheme(serialTheme);
             this.thermometerSvg.updateTheme(thermometerTheme);
+            this.lightSensorSvg.updateTheme(lightSensorTheme);
         }
 
         public updateState() {
@@ -110,13 +105,13 @@ namespace pxsim.micro_bit {
             let theme = this.props.theme;
 
             this.updateHeading();
-            this.updateLightLevel();
 
             this.displaySvg.updateState(state.displayCmp);
             this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.edgeConnectorTheme);
             this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
             this.thermometerSvg.updateState(state.thermometerCmp, this.g, this.element, this.props.thermometerTheme, this.defs);
+            this.lightSensorSvg.updateState(state.lightSensorCmp, this.g, this.element, this.props.lightSensorTheme, this.defs);
 
             if (!runtime || runtime.dead) svg.addClass(this.element, "grayscale");
             else svg.removeClass(this.element, "grayscale");
@@ -150,46 +145,6 @@ namespace pxsim.micro_bit {
             }
         }
 
-        private updateLightLevel() {
-            let state = this.board;
-            if (!state || !state.usesLightLevel) return;
-
-            if (!this.lightLevelButton) {
-                let gid = "gradient-light-level";
-                this.lightLevelGradient = svg.linearGradient(this.defs, gid)
-                let cy = 50;
-                let r = 35;
-                this.lightLevelButton = svg.child(this.g, "circle", {
-                    cx: `50px`, cy: `${cy}px`, r: `${r}px`,
-                    class: 'sim-light-level-button',
-                    fill: `url(#${gid})`
-                }) as SVGCircleElement;
-                let pt = this.element.createSVGPoint();
-                svg.buttonEvents(this.lightLevelButton,
-                    (ev) => {
-                        let pos = svg.cursorPoint(pt, this.element, ev);
-                        let rs = r / 2;
-                        let level = Math.max(0, Math.min(255, Math.floor((pos.y - (cy - rs)) / (2 * rs) * 255)));
-                        if (level != this.board.lightLevel) {
-                            this.board.lightLevel = level;
-                            this.applyLightLevel();
-                        }
-                    }, ev => { },
-                    ev => { })
-                this.lightLevelText = svg.child(this.g, "text", { x: 85, y: cy + r - 5, text: '', class: 'sim-text' }) as SVGTextElement;
-                this.updateTheme();
-            }
-
-            svg.setGradientValue(this.lightLevelGradient, Math.min(100, Math.max(0, Math.floor(state.lightLevel * 100 / 255))) + '%')
-            this.lightLevelText.textContent = state.lightLevel.toString();
-        }
-
-        private applyLightLevel() {
-            let lv = this.board.lightLevel;
-            svg.setGradientValue(this.lightLevelGradient, Math.min(100, Math.max(0, Math.floor(lv * 100 / 255))) + '%')
-            this.lightLevelText.textContent = lv.toString();
-        }
-
         private buildDom() {
             this.element = <SVGSVGElement>svg.elt("svg")
             svg.hydrate(this.element, {
@@ -210,11 +165,6 @@ svg.sim.grayscale {
     -moz-filter: grayscale(1);
     -webkit-filter: grayscale(1);
     filter: grayscale(1);
-}
-
-.sim-light-level-button {
-    stroke:#fff;
-    stroke-width: 3px;
 }
 
 .sim-text {
@@ -264,6 +214,7 @@ svg.sim.grayscale {
             this.style.textContent += this.displaySvg.style;
             this.style.textContent += this.serialSvg.style;
             this.style.textContent += this.thermometerSvg.style;
+            this.style.textContent += this.lightSensorSvg.style;
 
             this.defs = <SVGDefsElement>svg.child(this.element, "defs", {});
             this.g = svg.elt("g");

@@ -158,15 +158,6 @@ namespace pxsim.input {
         return b.heading;
     }
 
-    export function lightLevel(): number {
-        let b = board();
-        if (!b.usesLightLevel) {
-            b.usesLightLevel = true;
-            runtime.queueDisplayUpdate();
-        }
-        return b.lightLevel;
-    }
-
     export function magneticForce(): number {
         // TODO
         return 0;
