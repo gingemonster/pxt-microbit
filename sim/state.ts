@@ -41,8 +41,7 @@ namespace pxsim {
         accelerometerCmp: AccelerometerCmp;
 
         // compass
-        usesHeading = false;
-        heading = 90;
+        compassCmp: CompassCmp;
 
         // thermometer
         thermometerCmp: ThermometerCmp;
@@ -68,6 +67,7 @@ namespace pxsim {
             this.serialCmp = new SerialCmp();
             this.thermometerCmp = new ThermometerCmp();
             this.lightSensorCmp = new LightSensorCmp();
+            this.compassCmp = new CompassCmp();
         }
 
         initAsync(msg: SimulatorRunMessage): Promise<void> {
@@ -88,6 +88,9 @@ namespace pxsim {
             let serialTheme = pxsim.micro_bit.defaultSerialTheme;
             let thermometerTheme = pxsim.micro_bit.defaultThermometerTheme;
             let lightSensorTheme = pxsim.micro_bit.defaultLightSensorTheme;
+            let compassTheme = pxsim.micro_bit.defaultCompassTheme;
+            
+            compassTheme.color = theme.accent;
 
             console.log("setting up microbit simulator")
             let view = new pxsim.micro_bit.MicrobitBoardSvg({
@@ -100,6 +103,7 @@ namespace pxsim {
                 serialTheme: serialTheme,
                 thermometerTheme: thermometerTheme,
                 lightSensorTheme: lightSensorTheme,
+                compassTheme: compassTheme,
                 runtime: runtime
             })
             document.body.innerHTML = ""; // clear children
