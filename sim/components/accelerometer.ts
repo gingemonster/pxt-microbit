@@ -453,7 +453,7 @@ namespace pxsim.boardsvg {
             tiltTarget.style.perspective = "30em";
         }
 
-        public attachEvents(pointerEvents: IPointerEvents, state: AccelerometerCmp, enableTilt: boolean, tiltTarget: SVGSVGElement) {
+        public attachEvents(state: AccelerometerCmp, enableTilt: boolean, tiltTarget: SVGSVGElement) {
             let tiltDecayer = 0;
             tiltTarget.addEventListener(pointerEvents.move, (ev: MouseEvent) => {
                 if (!state.accelerometer.isActive) return;

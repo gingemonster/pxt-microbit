@@ -117,7 +117,7 @@ namespace pxsim.boardsvg {
             (<any>this.buttons[2]).style.visibility = "hidden";
         }
 
-        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
+        public attachEvents(bus: EventBus, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             this.buttonsOuter.slice(0, 2).forEach((btn, index) => {
                 btn.addEventListener(pointerEvents.down, ev => {
                     state.buttons[index].pressed = true;

@@ -261,9 +261,9 @@ pointer-events: none;
         private attachEvents() {
             this.serialSvg.attachEvents(this.g, this.props.theme.serialTheme);
             this.radioSvg.attachEvents(this.g, this.props.theme.radioTheme);
-            this.accelerometerSvg.attachEvents(pointerEvents, this.board.accelerometerCmp, !this.props.disableTilt, this.element);
-            this.edgeConnectorSvg.attachEvents(pointerEvents, this.board.bus, this.board.edgeConnectorState, this.element);
-            this.buttonPairSvg.attachEvents(pointerEvents, this.board.bus, this.board.buttonPairState, this.props.theme.accelerometerTheme);
+            this.accelerometerSvg.attachEvents(this.board.accelerometerCmp, !this.props.disableTilt, this.element);
+            this.edgeConnectorSvg.attachEvents(this.board.bus, this.board.edgeConnectorState, this.element);
+            this.buttonPairSvg.attachEvents(this.board.bus, this.board.buttonPairState, this.props.theme.accelerometerTheme);
         }
     }
 }

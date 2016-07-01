@@ -135,7 +135,7 @@ namespace pxsim.boardsvg {
             this.pinTexts = [67, 165, 275].map(x => <SVGTextElement>svg.child(g, "text", { class: "sim-text-pin", x: x, y: 345 }));
         }
         
-        public attachEvents(pointerEvents: IPointerEvents, bus: EventBus, state: EdgeConnectorCmp, element: SVGSVGElement) {
+        public attachEvents(bus: EventBus, state: EdgeConnectorCmp, element: SVGSVGElement) {
             this.pins.forEach((pin, index) => {
                 if (!state.pins[index]) return;
                 let pt = element.createSVGPoint();
