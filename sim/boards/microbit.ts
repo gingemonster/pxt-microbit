@@ -128,7 +128,7 @@ namespace pxsim.boardsvg {
             let theme = this.props.theme;
 
             this.displaySvg.updateState(state.displayCmp);
-            this.buttonPairSvg.updateState(this.g, state.buttonPairState, this.props.theme.buttonPairTheme);
+            this.buttonPairSvg.updateState(state.buttonPairState, this.props.theme.buttonPairTheme);
             this.edgeConnectorSvg.updateState(this.g, state.edgeConnectorState, this.props.theme.edgeConnectorTheme);
             this.accelerometerSvg.updateState(this.g, state.accelerometerCmp, this.props.theme.accelerometerTheme, pointerEvents, state.bus, !this.props.disableTilt, this.element);
             this.thermometerSvg.updateState(state.thermometerCmp, this.g, this.element, this.props.theme.thermometerTheme, this.defs);

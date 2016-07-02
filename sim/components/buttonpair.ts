@@ -71,20 +71,15 @@ namespace pxsim.boardsvg {
             svg.fill(this.buttons[2], buttonPairTheme.virtualButtonUp);
         }
 
-        public updateState(g: SVGElement, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
+        public updateState(state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
             state.buttons.forEach((btn, index) => {
                 svg.fill(this.buttons[index], btn.pressed ? buttonPairTheme.buttonDown : buttonPairTheme.buttonUp);
             });
 
-            this.updateButtonAB(g, state, buttonPairTheme);
-        }
-
-        private updateButtonAB(g: SVGElement, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
-            if (state.usesButtonAB && !this.buttonABText) {
+            if (state.usesButtonAB && this.buttonABText.style.visibility != "visible") {
                 (<any>this.buttonsOuter[2]).style.visibility = "visible";
                 (<any>this.buttons[2]).style.visibility = "visible";
-                this.buttonABText = svg.child(g, "text", { class: "sim-text", x: 370, y: 272 }) as SVGTextElement;
-                this.buttonABText.textContent = "A+B";
+                this.buttonABText.style.visibility = "visible";
                 this.updateTheme(buttonPairTheme);
             }
         }
@@ -115,6 +110,10 @@ namespace pxsim.boardsvg {
             this.buttons.push(svg.child(g, "circle", { class: "sim-button", cx: 446, cy: 278, r: 16.5 }));
             (<any>this.buttonsOuter[2]).style.visibility = "hidden";
             (<any>this.buttons[2]).style.visibility = "hidden";
+
+            this.buttonABText = svg.child(g, "text", { class: "sim-text", x: 370, y: 272 }) as SVGTextElement;
+            this.buttonABText.textContent = "A+B";
+            this.buttonABText.style.visibility = "hidden";
         }
 
         public attachEvents(bus: EventBus, state: ButtonPairCmp, buttonPairTheme: IButtonPairTheme) {
