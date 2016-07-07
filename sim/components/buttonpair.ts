@@ -64,6 +64,14 @@ namespace pxsim.boardsvg {
 }
             `;
 
+        public updateLocation(idx: number, x: number, y: number) {
+            //TODO(DZ): come up with a better abstraction/interface for customizing placement
+            if (idx < 0 || 2 < idx)
+                return; //TODO(DZ): throw error
+            let els = [this.buttons[idx], this.buttonsOuter[idx]]
+            els.forEach(e => svg.hydrate(e, {transform: `translate(${x} ${y})`})) 
+        }
+
         public updateTheme(buttonPairTheme: IButtonPairTheme) {
             svg.fills(this.buttonsOuter.slice(0, 2), buttonPairTheme.buttonOuter);
             svg.fills(this.buttons.slice(0, 2), buttonPairTheme.buttonUp);
@@ -85,7 +93,6 @@ namespace pxsim.boardsvg {
         }
 
         public buildDom(g: SVGElement) {
-            //TODO(DZ): Parameterize location
             this.buttonsOuter = []; this.buttons = [];
 
             const outerBtn = (left: number, top: number) => {
