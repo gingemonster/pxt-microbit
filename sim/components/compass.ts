@@ -23,6 +23,11 @@ namespace pxsim.boardsvg {
         private headText: SVGTextElement;
         private headPieces: SVGElement[];
 
+        public hide() {
+            let els =  [].concat(this.head, this.headText).concat(this.headPieces);
+            els.forEach(e => (<any>e).style.visibility = "hidden")
+        }
+
         public updateState(state: CompassCmp, theme: ICompassTheme, element: SVGSVGElement) {
             let xc = 258;
             let yc = 75;

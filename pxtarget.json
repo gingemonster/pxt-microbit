@@ -65,7 +65,7 @@
     },
     "simulator": {
         "autoRun": true,
-        "aspectRatio": 1.22
+        "aspectRatio": 0.61
     },
     "compileService": {
         "yottaTarget": "bbc-microbit-classic-gcc",

@@ -5,17 +5,17 @@
 namespace pxsim {
     export enum BoardTypes {
         microbit,
-        arduino
+        nrf51dk
     }
     //TODO(DZ): allow board selection
-    export const boardType = BoardTypes.microbit; 
+    export const boardType = BoardTypes.nrf51dk; 
 
     pxsim.initCurrentRuntime = () => {
         U.assert(!runtime.board);
         if (boardType == BoardTypes.microbit) {
             runtime.board = new MicrobitBoard();
-        } else {
-            //TODO(DZ)
+        } else if (boardType == BoardTypes.nrf51dk) {
+            runtime.board = new Nrf51dkBoard();
         }
     }
 

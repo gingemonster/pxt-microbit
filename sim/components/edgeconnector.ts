@@ -52,6 +52,11 @@ namespace pxsim.boardsvg {
   pointer-events: none;
 }`;
 
+        public hide() {
+            let els =  this.pins.concat(this.pinGradients).concat(this.pinTexts);
+            els.forEach(e => (<any>e).style.visibility = "hidden")
+        }
+
         public updateTheme(theme: IEdgeConnectorTheme) {
             this.pinGradients.forEach(lg => svg.setGradientColors(lg, theme.pin, theme.pinActive));
         }

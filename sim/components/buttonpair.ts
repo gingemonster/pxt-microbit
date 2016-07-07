@@ -68,7 +68,7 @@ namespace pxsim.boardsvg {
             //TODO(DZ): come up with a better abstraction/interface for customizing placement
             if (idx < 0 || 2 < idx)
                 return; //TODO(DZ): throw error
-            let els = [this.buttons[idx], this.buttonsOuter[idx]]
+            let els = [this.buttons[idx], this.buttonsOuter[idx], this.buttonABText]
             els.forEach(e => svg.hydrate(e, {transform: `translate(${x} ${y})`})) 
         }
 
