@@ -198,6 +198,11 @@ pointer-events: none;
     from { stroke: yellow; }
     to   { stroke: default; }
 }
+
+/* bread board */
+.sim-bb-pin {
+    fill:#888;
+}
             `;
             this.style.textContent += this.buttonPairSvg.style;
             this.style.textContent += this.edgeConnectorSvg.style;
@@ -224,6 +229,26 @@ pointer-events: none;
             let breadBoard = svg.child(this.g, "image", 
                 { class: "sim-board", x: 0, y: 380, width: 498, height: 380, 
                     "href": "/images/breadboard-photo-sml.png"});
+
+            // hand-drawn breadboard
+            let mkGrid = (l: number, r: number, rs: number, cs: number): SVGGElement => {
+                const size = 6;
+                const spacing = size*2.5;
+                const rounding = 2;
+
+                let grid = <SVGGElement>svg.elt("g");
+                for (let i = 0; i < rs; i++) {
+                    for (let j = 0; j < cs; j++) {
+                        let pin = svg.elt("rect")
+                        let props = { class: "sim-bb-pin", x: l+j*spacing, y: r+i*spacing, rx: rounding, ry: rounding, width: size, height: size };
+                        svg.hydrate(pin, props)
+                        grid.appendChild(pin);
+                    }
+                }
+                return grid;
+            }
+            let bb = mkGrid(10, 420, 5, 30);
+            this.g.appendChild(bb);
 
             // display 
             this.displaySvg.buildDom(this.g);
