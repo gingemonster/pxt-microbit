@@ -53,8 +53,8 @@
     "compile": {
         "isNative": false,
         "hasHex": true,
-        "deployDrives": "^MICROBIT",
-        "driveName": "MICROBIT",
+        "deployDrives": "^MBED",
+        "driveName": "MBED",
         "hexMimeType": "application/x-microbit-hex"
     },
     "runtime": {
@@ -68,11 +68,11 @@
         "aspectRatio": 0.61
     },
     "compileService": {
-        "yottaTarget": "bbc-microbit-classic-gcc",
-        "yottaCorePackage": "pxt-microbit-core",
-        "githubCorePackage": "microsoft/pxt-microbit-core",
-        "gittag": "v0.1.11",
-        "serviceId": "ws"
+        "yottaTarget": "nrf51dk-classic-gcc",
+        "yottaCorePackage": "pxt-arduino-core",
+        "githubCorePackage": "microsoft/pxt-arduino-core",
+        "gittag": "v0.0.2",
+        "serviceId": "nrf51dk"
     },
     "serial": {
         "manufacturerFilter": "^mbed$",
