@@ -95,9 +95,9 @@ input.onButtonPressed(Button.B, () => {
 
 ```
 
-## step 5: practice your performance
+## Step 6: practice your performance
 Now you just need to program your own @boardname@ and practice the trick a few times before performing to friends. Try asking your friends to click the buttons after you have switched the labels and the trick won't work for them as they don't have a hidden magnet in their hand.
 
 
 ## about the authors
-This project was contributed by Brian and Jasmine Norman, aka [@MicroMonstersUK](https://twitter.com/MicroMonstersUK). You can chekout their [@boardname@ tutorials chanel on youtube](https://www.youtube.com/channel/UCK2DviDexh_Er2QYZerZyZQ) for more projects.
+This project was contributed by Brian and Jasmine Norman, aka [@MicroMonstersUK](https://twitter.com/MicroMonstersUK). You can chekout their [@boardname@ tutorials channel on youtube](https://www.youtube.com/channel/UCK2DviDexh_Er2QYZerZyZQ) for more projects.
