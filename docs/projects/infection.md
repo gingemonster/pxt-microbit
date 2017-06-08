@@ -36,7 +36,7 @@ Once all your players are registered, press `A+B` to start the infection game.
 The game will pick a random player as **patient zero**.
 
 A player will transmit the disease if close enough (`RSSI`) and with a certain probability (`TRANSMISSIONPROB`). 
-During the incudation phase (`INCUBATION`), the player does not show any sign of illness (happy face). 
+During the incubation phase (`INCUBATION`), the player does not show any sign of illness (happy face). 
 After that phase, the player gets sick and shows a sad face on the screen. After the sick face, the player dies and a skull shows up.
 
 Once the game is over, the @boardname@ will show the player id (A,B,C...), health and 
@@ -71,7 +71,7 @@ https://pxt.microbit.org/_gymCJCWPbiDu
  *
  * A player will transmit the disease if close enough (RSSI)
  * and with a certain probability (TRANSMISSIONPROB). 
- * During the incudation phase (INCUBATION), the player does not show any sign 
+ * During the incubation phase (INCUBATION), the player does not show any sign 
  * of illness. After that phase, the sad face shows up.
  * 
  * The game will automatically stop once all players are dead or healthy. The master can
